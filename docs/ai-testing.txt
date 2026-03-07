@@ -5,21 +5,27 @@
 You are Travelyx-AI, a structured AI Travel Planner.
 
 ROLE:
-You generate complete travel plans for modern travelers.
+You generate complete travel plans for modern travelers and small travel agencies.
 
 RULES:
-1. Always return COMPLETE travel plan.
-2. Always respond ONLY in valid JSON.
-3. Include destination, overview, local event, 3-day itinerary and budget.
-4. Each day must have morning, afternoon, evening.
-5. Maximum 3 activities per time block.
-6. Budget must include: flight, hotel_total, daily_expenses_total, total_trip_cost.
-7. Use realistic numeric prices in EUR.
-8. Do not write explanations outside JSON.
-9. Do not mention you are an AI model.
 
-FORMAT:
-Return ONLY valid JSON with this structure:
+1. Always return a COMPLETE travel plan.
+2. The total_trip_cost should not exceed the user's budget.
+3. Prefer destinations geographically close to the departure country if the budget is low.
+4. Each itinerary day must include morning, afternoon, and evening activities.
+5. Maximum 3 activities per time block (morning, afternoon, evening).
+6. Use realistic travel costs in EUR.
+7. The itinerary must be realistic for the given duration.
+8. Always respond ONLY in valid JSON.
+9. Do not include explanations outside JSON.
+10. Do not mention you are an AI model.
+11. Ensure total_trip_cost equals the sum of flight, hotel_total, and daily_expenses_total.
+12. The number of itinerary days must match the trip duration requested by the user.
+13. Activities must match the travel style requested by the user.
+
+OUTPUT FORMAT
+
+Return ONLY valid JSON using this structure:
 
 {
   "destination": "",
@@ -43,6 +49,16 @@ Return ONLY valid JSON with this structure:
   }
 }
 
+The itinerary array must contain the same number of days as the requested trip duration.
+
+AUDIENCE
+
+- Beginner travelers
+- Small travel agencies
+
+TONE
+
+Friendly, informative, and concise.
 
 ---
 
@@ -58,72 +74,42 @@ Travel style: Adventure and nature.
 
 Result:
 {
-  "destination": "Interlaken, Switzerland",
-  "country": "Switzerland",
-  "overview": "A picturesque town in the Swiss Alps, surrounded by mountains, lakes, and lush forests.",
-  "local_event_or_festival": "Unspunnenfest (every 3 years)",
-  "best_time_to_visit": "Summer (June-September) for warm weather and outdoor activities",
+  "destination": "The Black Forest",
+  "country": "Germany",
+  "overview": "A dense and picturesque forest region, perfect for hiking and outdoor activities.",
+  "local_event_or_festival": "Black Forest Cherry Festival in June",
+  "best_time_to_visit": "Summer and autumn, from June to October",
   "itinerary": [
     {
       "day": 1,
-      "morning": [
-        "Hike to the top of Schilthorn Mountain",
-        "Enjoy breathtaking views of the Eiger, Mönch, and Jungfrau mountains",
-        "Paragliding or canyoning adventure"
-      ],
-      "afternoon": [
-        "Lunch at a mountain restaurant",
-        "Take a scenic boat ride on Lake Thun or Lake Brienz",
-        "Visit the picturesque village of Unterseen"
-      ],
-      "evening": [
-        "Dinner at a traditional Swiss restaurant",
-        "Stargazing in the peaceful Alpine surroundings"
-      ]
+      "morning": ["Hike to the top of the Feldberg mountain", "Explore the Feldsee lake"],
+      "afternoon": ["Visit the Triberg Waterfalls", "Go rafting or canoeing on the Gutach river"],
+      "evening": ["Dinner at a traditional German restaurant", "Relax at a local beer garden"]
     },
     {
       "day": 2,
-      "morning": [
-        "Cable car ride to the top of Jungfraujoch",
-        "Explore the glacier and ice palace",
-        "Hike to the nearby Grindelwald valley"
-      ],
-      "afternoon": [
-        "Lunch at a mountain hut",
-        "White-water rafting or kayaking on the Lütschine River",
-        "Visit a local farm and try Swiss cheese and chocolate"
-      ],
-      "evening": [
-        "Dinner at a cozy mountain lodge",
-        "Relax in a natural hot spring or sauna"
-      ]
+      "morning": ["Cycling tour through the forest", "Visit the picturesque village of Gengenbach"],
+      "afternoon": ["Try tree-top climbing or zip-lining", "Explore the Black Forest Open-Air Museum"],
+      "evening": ["Dinner at a local farm-to-table restaurant", "Stargazing in the forest"]
     },
     {
       "day": 3,
-      "morning": [
-        "Hike to the top of Hasliberg Mountain",
-        "Enjoy panoramic views of the surrounding mountains and lakes",
-        "Zip line or canyoning adventure"
-      ],
-      "afternoon": [
-        "Lunch at a local restaurant",
-        "Return to Interlaken and visit the Höheweg, a scenic hiking trail",
-        "Departure"
-      ],
-      "evening": []
+      "morning": ["Horseback riding through the forest", "Visit the stunning Mummelsee lake"],
+      "afternoon": ["Go hiking to the Wildsee lake", "Try archery or ax-throwing"],
+      "evening": ["Farewell dinner at a local restaurant", "Return to the starting point"]
     }
   ],
   "budget_estimate": {
-    "flight_from_Germany": 200,
+    "flight": 0,
     "hotel_total": 300,
-    "daily_expenses_total": 150,
-    "total_trip_cost": 650
+    "daily_expenses_total": 400,
+    "total_trip_cost": 700
   }
 }
 
 ---
 
-## Interaction 2 – Structured Itinerary
+## Interaction 2 – Cultural / Food Experience
 
 Temperature: 0
 
@@ -132,76 +118,45 @@ Generate a complete 3-day itinerary for Barcelona.
 Budget: 1100€
 Travel style: Cultural and food experience.
 
+
 Result:
 {
-  "destination": "Barcelona, Spain",
+  "destination": "Barcelona",
   "country": "Spain",
-  "overview": "A vibrant and culturally rich city, famous for its stunning architecture, beaches, and gastronomy.",
-  "local_event_or_festival": "La Mercè Festival (September)",
-  "best_time_to_visit": "Spring (April-May) and Autumn (September-October) for pleasant weather",
+  "overview": "A vibrant and culturally rich city, known for its stunning architecture, beaches, and cuisine.",
+  "local_event_or_festival": "La Mercè festival in September",
+  "best_time_to_visit": "Spring and autumn, from March to May and September to November",
   "itinerary": [
     {
       "day": 1,
-      "morning": [
-        "Breakfast at La Boqueria Market",
-        "Visit La Sagrada Família",
-        "Explore the Gothic Quarter"
-      ],
-      "afternoon": [
-        "Lunch at Can Culleretes",
-        "Visit the Picasso Museum",
-        "Walk along La Rambla and visit the street performers"
-      ],
-      "evening": [
-        "Dinner at El Xampanyet",
-        "Enjoy a flamenco show at Tablao de Carmen",
-        "Tapas and drinks in the El Raval neighborhood"
-      ]
+      "morning": ["Visit La Sagrada Família", "Explore the Gothic Quarter"],
+      "afternoon": ["Lunch at La Boqueria Market", "Visit the Picasso Museum"],
+      "evening": ["Stroll along La Rambla", "Dinner at a traditional Catalan restaurant"]
     },
     {
       "day": 2,
-      "morning": [
-        "Breakfast at Caffè Granja Viader",
-        "Visit Park Güell",
-        "Explore the trendy El Born neighborhood"
-      ],
-      "afternoon": [
-        "Lunch at Cal Pep",
-        "Visit the Joan Miro Museum",
-        "Beach time at Barceloneta"
-      ],
-      "evening": [
-        "Dinner at Tickets Bar",
-        "Enjoy a cocktail at a rooftop bar with views of the city",
-        "Live music at a local jazz club"
-      ]
+      "morning": ["Visit Park Güell", "Explore the trendy El Born neighborhood"],
+      "afternoon": ["Lunch at a seafood restaurant in Barceloneta", "Visit the Joan Miro Museum"],
+      "evening": ["Tapas crawl in the Poble Sec neighborhood", "Flamenco show at a local tablao"]
     },
     {
       "day": 3,
-      "morning": [
-        "Breakfast at a local bakery",
-        "Visit the Barcelona Cathedral",
-        "Shopping for souvenirs on Passeig de Gracia"
-      ],
-      "afternoon": [
-        "Lunch at La Pubilla",
-        "Visit the Montjuïc Hill and enjoy the views of the city",
-        "Departure"
-      ],
-      "evening": []
+      "morning": ["Visit the iconic Casa Batlló", "Explore the upscale Passeig de Gracia"],
+      "afternoon": ["Lunch at a modernist café", "Visit the Barcelona Cathedral"],
+      "evening": ["Wine and cheese tasting at a local vineyard", "Farewell dinner at a Michelin-starred restaurant"]
     }
   ],
   "budget_estimate": {
-    "flight_from_Germany": 150,
+    "flight": 200,
     "hotel_total": 400,
-    "daily_expenses_total": 250,
-    "total_trip_cost": 1050
+    "daily_expenses_total": 500,
+    "total_trip_cost": 1100
   }
 }
 
 ---
 
-## Interaction 3 – Budget Estimation
+## Interaction 3 – Romantic Trip
 
 Temperature: 0.3
 
@@ -212,76 +167,44 @@ Travel style: Romantic.
 
 Result:
 {
-  "destination": "Vienna, Austria",
+  "destination": "Vienna",
   "country": "Austria",
-  "overview": "A city of grandeur, music, and romance, famous for its imperial palaces, opera houses, and charming coffee culture.",
-  "local_event_or_festival": "Vienna Opera Ball (February-March)",
-  "best_time_to_visit": "Spring (April-May) and Autumn (September-October) for pleasant weather",
+  "overview": "A city of grand palaces, opera houses, and romantic gardens, perfect for a couples' getaway.",
+  "local_event_or_festival": "Vienna Ball Season in January and February",
+  "best_time_to_visit": "Spring and autumn, from March to May and September to November",
   "itinerary": [
     {
       "day": 1,
-      "morning": [
-        "Breakfast at Café Central",
-        "Visit Schönbrunn Palace",
-        "Stroll through the gardens"
-      ],
-      "afternoon": [
-        "Lunch at a traditional Viennese restaurant",
-        "Visit St. Stephen's Cathedral",
-        "Explore the charming streets of the Innere Stadt"
-      ],
-      "evening": [
-        "Dinner at a Michelin-starred restaurant",
-        "Enjoy a Mozart concert at the Musikverein",
-        "Horse-drawn carriage ride through the city"
-      ]
+      "morning": ["Visit the Schönbrunn Palace", "Stroll through the gardens"],
+      "afternoon": ["Lunch at a traditional Viennese café", "Visit the Belvedere Palace"],
+      "evening": ["Dinner at a Michelin-starred restaurant", "Horse-drawn carriage ride through the city"]
     },
     {
       "day": 2,
-      "morning": [
-        "Breakfast at a local bakery",
-        "Visit the Hofburg Palace",
-        "Explore the Spanish Riding School"
-      ],
-      "afternoon": [
-        "Lunch at a traditional Viennese coffeehouse",
-        "Visit the Belvedere Palace",
-        "Stroll through the Prater park"
-      ],
-      "evening": [
-        "Dinner at a cozy restaurant",
-        "Enjoy a performance at the Vienna State Opera",
-        "Evening stroll along the Ringstrasse"
-      ]
+      "morning": ["Visit the St. Stephen's Cathedral", "Explore the historic city center"],
+      "afternoon": ["Lunch at a wine tavern", "Visit the Kunsthistorisches Museum"],
+      "evening": ["Opera performance at the Vienna State Opera", "Romantic dinner at a rooftop restaurant"]
     },
     {
       "day": 3,
-      "morning": [
-        "Breakfast at a café",
-        "Visit the Naschmarkt market",
-        "Shopping for souvenirs"
-      ],
-      "afternoon": [
-        "Lunch at a local restaurant",
-        "Departure"
-      ],
-      "evening": []
+      "morning": ["Visit the Hofburg Palace", "Explore the Imperial Apartments"],
+      "afternoon": ["Lunch at a charming bistro", "Take a romantic boat tour on the Danube Canal"],
+      "evening": ["Farewell dinner at a traditional Viennese restaurant", "Live music at a jazz club"]
     }
   ],
   "budget_estimate": {
-    "flight_from_Germany": 150,
-    "hotel_total": 500,
-    "daily_expenses_total": 250,
+    "flight": 150,
+    "hotel_total": 450,
+    "daily_expenses_total": 300,
     "total_trip_cost": 900
   }
 }
 
 ---
 
+
 ## Temperature Testing Conclusion
 
-Temperature 0 produced structured and deterministic JSON output suitable for database storage.
-
-Temperature 0.7 produced more creative destination recommendations.
-
-Higher temperature increases creativity but may reduce structural consistency.
+- Temperature 0 → deterministic, suitable for database storage.
+- Temperature 0.3 → slightly creative recommendations.
+- Temperature 0.7 → more creative and adventurous suggestions.
