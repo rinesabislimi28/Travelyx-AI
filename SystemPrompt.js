@@ -1,29 +1,30 @@
-// SystemPrompt.js
-
 import { Groq } from "groq-sdk";
 
-// Krijimi i instancës së Groq API
+// Create an instance of the Groq API
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
 
 /**
- * Gjeneron një plan të plotë udhëtimi duke përdorur Travelyx-AI
- * @param {string} userPrompt - kërkesa e përdoruesit (budget, destination, duration, travel style)
- * @returns {Promise<Object|null>} - JSON objekt me itinerarin e udhëtimit
+ * Generates a complete travel plan using Travelyx-AI
+ * @param {string} userPrompt - The user's request (budget, destination, duration, travel style)
+ * @returns {Promise<Object|null>} - JSON object containing the travel itinerary
  */
 
 export async function generateTravelPlan(userPrompt) {
   try {
 
+    // Call Groq API for chat completion
     const chatCompletion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
 
+      // Temperature controls creativity of AI responses
       temperature: 0.3,
       max_completion_tokens: 1024,
       top_p: 1,
       stream: false,
 
+      // Messages sent to the AI model
       messages: [
         {
           role: "system",
@@ -83,7 +84,6 @@ TONE:
 Friendly, informative, and concise.
 `
         },
-
         {
           role: "user",
           content: userPrompt
@@ -91,18 +91,17 @@ Friendly, informative, and concise.
       ]
     });
 
-    // Merr përgjigjen e AI
+    // Get the AI's response
     const aiResponse = chatCompletion.choices[0].message.content;
 
-    // Konverto tekstin në JSON objekt
+    // Convert the response string into a JSON object
     const parsedResult = JSON.parse(aiResponse);
 
     return parsedResult;
 
   } catch (error) {
-
+    // Log any errors in the console and return null
     console.error("Travelyx-AI Error:", error);
-
     return null;
   }
 }
