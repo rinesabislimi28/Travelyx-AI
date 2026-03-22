@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "lib/supabaseClient.js", "app/signup/page.jsx", "app/login/page.jsx", "app/components/ProtectedRoute.jsx", "app/ai/AIForm.jsx"  ],
   "exclude": ["node_modules"]
 }
