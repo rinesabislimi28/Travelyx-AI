@@ -1,58 +1,57 @@
 import { generateTravelPlan } from "@/lib/ai/SystemPrompt";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-/**
- * POST /api/chat
- * ----------------
- * Receives a user message, calls AI backend,
- * and returns a structured travel plan
- */
 export async function POST(req) {
   try {
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get: (name) => cookieStore.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
+    );
+
+    // ✅ AUTH CHECK - Ensure the user is authenticated before processing the request
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized. User not logged in." }),
+        { status: 401 }
+      );
+    }
+
     const { message } = await req.json();
 
-    // Validate input
-    if (!message || message.trim().length < 5) {
+    if (!message || message.trim().length < 10) {
       return new Response(
-        JSON.stringify({
-          error: "Please provide a detailed travel request (at least 5 characters)."
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Message too short." }),
+        { status: 400 }
       );
     }
 
-    // Artificial delay for loading UI
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const travelPlan = await generateTravelPlan(message);
 
-    // Call AI backend safely
-    let travelPlan = null;
-    try {
-      travelPlan = await generateTravelPlan(message);
-    } catch (aiError) {
-      console.error("AI generation error:", aiError);
-      return new Response(
-        JSON.stringify({ error: "AI failed to generate a valid travel plan." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check AI response
-    if (!travelPlan || Object.keys(travelPlan).length === 0) {
-      return new Response(
-        JSON.stringify({ error: "AI did not return a valid travel plan." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Return structured travel plan
     return new Response(
       JSON.stringify({ result: travelPlan }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200 }
     );
-  } catch (error) {
-    console.error("API Error:", error);
+
+  } catch (err) {
+    console.error(err);
     return new Response(
-      JSON.stringify({ error: "Something went wrong on the server." }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Server error." }),
+      { status: 500 }
     );
   }
 }
