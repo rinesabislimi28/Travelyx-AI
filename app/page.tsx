@@ -1,14 +1,19 @@
 import AIForm from "./ai/AIForm";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 /**
  * Main Page Component
- * ----------------------------
- * Renders the AIForm component for the travel planner
+ * -------------------
+ * This is the root landing page, accessible only after login.
+ * It strictly wraps the AIForm component inside a <ProtectedRoute>
+ * to ensure that only authenticated users can access the OpenAI/Groq API.
  */
 export default function Page() {
   return (
-    <main className="min-h-screen flex justify-center items-start bg-slate-100">
-      <AIForm />
-    </main>
+    <ProtectedRoute>
+      <main className="min-h-screen w-full bg-slate-900">
+        <AIForm />
+      </main>
+    </ProtectedRoute>
   );
 }
