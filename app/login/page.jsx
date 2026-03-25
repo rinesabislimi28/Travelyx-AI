@@ -6,6 +6,7 @@
  * and detailed error handling.
  */
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -35,15 +36,15 @@ export default function LoginPage() {
     try {
       // 2. Authenticate with Supabase
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-      
+
       if (authError) {
         setError(authError.message);
         return;
       }
 
       // 3. Supabase sets the persistent session automatically in local storage.
-      // 4. Redirect the user to the protected dashboard/home route.
-      router.push("/");
+      // 4. Redirect the user to the protected dashboard route.
+      router.push("/dashboard");
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
       console.error(err);
@@ -53,9 +54,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-4">
-      <div className="bg-white/10 backdrop-blur-lg border border-white/20 p-10 rounded-3xl shadow-2xl w-full max-w-md flex flex-col gap-6">
-        
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans overflow-hidden bg-slate-950">
+      {/* Pure CSS Dynamic Travel Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Soft glowing orbs representing destinations */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-purple-600/20 blur-[100px] rounded-full animate-pulse" style={{ animationDelay: '4s' }}></div>
+        {/* CSS Pattern (Dotted map grid illusion) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:24px_24px]"></div>
+      </div>
+
+      {/* Floating Back Button */}
+      <Link href="/" className="absolute top-6 left-6 z-20 text-white/70 hover:text-white flex items-center gap-2 text-sm font-medium bg-black/30 hover:bg-black/50 backdrop-blur-md px-4 py-2 rounded-full transition-all border border-white/10">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        Back to Home
+      </Link>
+
+      <div className="relative z-10 bg-slate-950/60 backdrop-blur-xl border border-slate-700/50 p-10 rounded-3xl shadow-2xl w-full max-w-md flex flex-col gap-6 transition-all duration-300">
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Welcome Back</h1>
@@ -64,7 +81,7 @@ export default function LoginPage() {
 
         {/* Form Elements */}
         <form onSubmit={handleLogin} className="flex flex-col gap-5 mt-2">
-          
+
           {/* Error Message Display */}
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-lg text-sm text-center font-medium">
@@ -74,30 +91,30 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-indigo-100 text-sm mb-1 ml-1 font-medium">Email Address</label>
-            <input 
-              type="email" 
-              placeholder="you@example.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400" 
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400"
               required
             />
           </div>
 
           <div>
             <label className="block text-indigo-100 text-sm mb-1 ml-1 font-medium">Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400" 
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400"
               required
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold p-3.5 rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >

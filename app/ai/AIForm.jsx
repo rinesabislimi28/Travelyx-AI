@@ -21,6 +21,21 @@ export default function AIForm() {
   const router = useRouter();
   const responseEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const [userName, setUserName] = useState("Traveler");
+
+  // ----------------------------
+  // FETCH USER INFO
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user?.user_metadata?.full_name) {
+        // Only get the first name if desired, or full name
+        // We'll use the full name as requested
+        setUserName(data.user.user_metadata.full_name);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // ----------------------------
   // AUTO SCROLL TO LAST MESSAGE
@@ -203,15 +218,16 @@ export default function AIForm() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-8 flex flex-col items-center">
       <div className="flex justify-between items-center mb-6 w-full max-w-3xl">
-        <div className="text-center flex-1">
-          <h1 className="text-5xl font-bold text-white">Travelyx-AI</h1>
-          <p className="text-indigo-200 mt-2 text-lg">Your AI Travel Planner</p>
+        <div className="flex-1">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Travelyx-AI</h1>
+          <p className="text-indigo-200 mt-1 text-lg font-medium">Hello there, {userName}! 👋</p>
         </div>
         <button
           onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+          className="flex items-center gap-2 bg-red-500/10 border border-red-500/50 text-red-200 px-5 py-2.5 rounded-full hover:bg-red-500 hover:text-white transition-all duration-300 font-semibold shadow-lg shadow-red-500/10"
         >
-          Logout
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          Log Out
         </button>
       </div>
 
