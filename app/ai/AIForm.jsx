@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 /**
  * AIForm Component — Travelyx-AI
@@ -14,7 +15,7 @@ import { useRouter } from "next/navigation";
  * - Full A-Z destinations list
  * - Visually stunning timeline layout for itinerary
  */
-export default function AIForm() {
+export default function AIForm({ onTripGenerated = () => {} }) {
   const [formData, setFormData] = useState({
     departure: "",
     destination: "",
@@ -158,6 +159,11 @@ export default function AIForm() {
       let aiContent = data?.result ?? "No result returned.";
 
       if (typeof aiContent === "object" && aiContent !== null) {
+        // Inject departure context into the returned object to store appropriately
+        aiContent.departure = formData.departure;
+        data.result.user_budget = formData.budget;
+        aiContent.user_budget = formData.budget;
+        
         const {
           destination = "Unknown",
           country = "Unknown",
@@ -165,8 +171,13 @@ export default function AIForm() {
           local_event_or_festival,
           best_time_to_visit = "N/A",
           itinerary = [],
-          budget_estimate = {}
+          budget_estimate = {},
+          user_budget = formData.budget
         } = aiContent;
+
+        const userBudgetNumber = Number(user_budget) || Number(budget_estimate?.total_trip_cost) || 0;
+        const totalSpent = Number(budget_estimate?.total_trip_cost) || 0;
+        const remaining = userBudgetNumber - totalSpent;
 
         aiContent = (
           <div className="w-full">
@@ -241,6 +252,24 @@ export default function AIForm() {
             <div className="bg-slate-50 border-2 border-slate-200 p-8 rounded-[2rem] shadow-sm relative overflow-hidden">
               <div className="absolute top-[-30px] right-[-20px] text-9xl opacity-[0.03]">💸</div>
               <p className="font-black text-slate-800 mb-6 text-2xl flex items-center gap-3">💰 Estimated Budget Breakdown</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 text-center">Your Budget</span> 
+                  <span className="font-black text-3xl text-indigo-600">€{userBudgetNumber}</span>
+                </div>
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 text-center">Total Spent</span> 
+                  <span className="font-black text-3xl text-slate-800">€{totalSpent}</span>
+                </div>
+                <div className={`p-5 rounded-2xl shadow-sm border flex flex-col items-center justify-center ${remaining >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                  <span className={`text-sm font-bold uppercase tracking-widest mb-1 text-center ${remaining >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Remaining Funds</span> 
+                  <span className={`font-black text-3xl ${remaining >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {remaining >= 0 ? `€${remaining}` : `-€${Math.abs(remaining)}`}
+                  </span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-slate-700 font-medium mb-6">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center transition-all hover:border-indigo-200">
                   <span className="text-lg">✈️ Flight Estimates</span> <span className="font-black text-xl">€{budget_estimate?.flight ?? 0}</span>
@@ -265,7 +294,27 @@ export default function AIForm() {
         );
       }
 
-      setMessages(prev => [...prev, { role: "ai", content: aiContent, rawData: data.result, isSaved: false }]);
+      // Store JSX content and Raw object
+      setMessages(prev => [...prev, { role: "ai", content: aiContent, rawData: data.result, isSaved: true }]);
+
+      // AUTO-SAVE OPERATION
+      if (userId && data.result) {
+        try {
+          const budgetCost = formData.budget || data.result.budget_estimate?.total_trip_cost?.toString() || "0";
+          const { error: saveError } = await supabase.from('trips').insert({
+            user_id: userId,
+            destination: formData.destination, // Safe fallback
+            budget: budgetCost,
+            itinerary_data: data.result // MUST be the pure JSON object, not the React Element!
+          });
+
+          if (!saveError && typeof onTripGenerated === "function") {
+            onTripGenerated();
+          }
+        } catch (saveError) {
+          console.error("Auto-save failed", saveError);
+        }
+      }
     } catch (err) {
       if (err.name === "TypeError" && err.message.includes("fetch")) {
         setError("🔌 Network Error: Failed to connect to the server. Please check your internet connection.");
@@ -277,138 +326,114 @@ export default function AIForm() {
     }
   };
 
-  // ----------------------------
-  // EXPLICIT SAVE OPERATION (Best Practice)
-  // ----------------------------
-  // Architecture Note: We intentionally do NOT auto-save every AI generation.
-  // This is a deliberate design choice that prevents database pollution ("Trash Data")
-  // when users are merely testing or tweaking parameters. By requiring an explicit
-  // "Save" action, we significantly optimize Supabase database storage costs 
-  // and performance, ensuring the history consists only of highly-curated trips.
-  const saveTrip = async (rawData, index) => {
-    if (!userId) return setError("User ID not found. Cannot save trip.");
-    try {
-      const budgetCost = rawData.budget_estimate?.total_trip_cost?.toString() || "0";
-      const { error } = await supabase.from('trips').insert({
-        user_id: userId,
-        destination: rawData.destination || "Unknown Destination",
-        budget: budgetCost,
-        itinerary_data: rawData
-      });
-
-      if (error) throw error;
-      
-      setMessages(prev => {
-        const newMsgs = [...prev];
-        newMsgs[index].isSaved = true;
-        return newMsgs;
-      });
-      setError(null);
-    } catch (err) {
-      setError("❌ Failed to save trip: " + err.message);
-    }
-  };
 
   return (
-    <div className="w-full min-h-screen relative p-6 md:p-10 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden">
+    <div className="w-full min-h-screen relative p-4 md:p-6 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden">
       {/* Dynamic Background */}
-      <div className="absolute top-0 left-0 w-full h-[350px] md:h-[450px] bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-700 rounded-b-[3rem] md:rounded-b-[5rem] shadow-2xl z-0 overflow-hidden border-b-4 border-indigo-400/20">
+      <div className="absolute top-0 left-0 w-full h-[250px] md:h-[300px] bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-700 rounded-b-[3rem] md:rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b-4 border-indigo-400/20">
          {/* Decorative shapes to make it look premium */}
-         <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-white opacity-5 rounded-full blur-3xl"></div>
-         <div className="absolute bottom-[-10%] left-[-5%] w-[300px] h-[300px] bg-emerald-400 opacity-10 rounded-full blur-3xl"></div>
+         <div className="absolute top-[-10%] right-[-5%] w-[350px] h-[350px] bg-white opacity-5 rounded-full blur-3xl"></div>
+         <div className="absolute bottom-[-10%] left-[-5%] w-[250px] h-[250px] bg-emerald-400 opacity-10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 w-full max-w-6xl z-10 pt-2 gap-4">
-        <div className="text-center md:text-left flex items-center gap-4">
-          <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/10 hidden md:block">
-            <span className="text-4xl text-white drop-shadow-lg">✈️</span>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 w-full max-w-6xl z-10 pt-1 gap-4">
+        <div className="text-center md:text-left flex items-center gap-3">
+          <div className="bg-white/10 p-2.5 rounded-2xl backdrop-blur-md shadow-inner border border-white/10 hidden md:block">
+            <span className="text-3xl text-white drop-shadow-lg">✈️</span>
           </div>
           <div>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md flex items-center gap-3">
+            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md flex items-center gap-2">
               Travelyx
             </h1>
-            <p className="text-blue-100 mt-2 text-lg font-medium opacity-90 drop-shadow-sm">
+            <p className="text-blue-100 mt-1 text-base font-medium opacity-90 drop-shadow-sm">
               Greetings, {userName ? userName.charAt(0).toUpperCase() + userName.slice(1) : 'Traveler'}. Where to next?
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
             title="Start Over"
-            className="flex items-center justify-center p-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/20 hover:rotate-180 transition-all duration-500 shadow-xl"
+            className="flex items-center justify-center p-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/20 hover:rotate-180 transition-all duration-500 shadow-xl"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
           </button>
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 border border-emerald-400 text-white px-6 py-2.5 rounded-full hover:from-emerald-400 hover:to-teal-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300 font-extrabold shadow-lg text-xs uppercase tracking-wider transform hover:-translate-y-0.5"
+            title="Manage My Profile & settings"
+          >
+            <span className="text-sm">⚙️</span> My Profile
+          </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-full hover:bg-red-500 hover:border-red-500 transition-all duration-300 font-bold shadow-xl text-sm uppercase tracking-wider"
+            className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full hover:bg-red-500 hover:border-red-500 transition-all duration-300 font-bold shadow-xl text-xs uppercase tracking-wider"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Log Out
           </button>
         </div>
       </div>
 
-      <div className="w-full max-w-6xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-6 md:p-8 z-10 flex flex-col mb-10 min-h-[600px]">
+      <div className="w-full max-w-6xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-5 md:p-6 z-10 flex flex-col mb-6 min-h-[400px]">
         
         {/* Simple & Clean Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-8 bg-white p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-slate-100">
-          <div className="flex justify-between items-center mb-4">
-             <div className="flex items-center gap-3">
-               <span className="text-2xl bg-indigo-50 p-2 rounded-xl border border-indigo-100 shadow-sm">✨</span>
-               <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Fill in the details. We do the rest.</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 mb-6 bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center mb-2">
+             <div className="flex items-center gap-2">
+               <span className="text-xl bg-indigo-50 p-2 rounded-xl border border-indigo-100 shadow-sm">✨</span>
+               <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight">Fill in the details. We do the rest.</h2>
              </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block flex items-center gap-1.5"><span className="text-indigo-500">🛫</span> Departure</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex items-center gap-1.5"><span className="text-indigo-500">🛫</span> Departure</label>
               <select
                 value={formData.departure}
                 onChange={(e) => setFormData({...formData, departure: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner text-sm"
               >
-                <option value="">Select Departure</option>
+                <option value="" disabled>Select Departure</option>
                 {validDestinations.map(d => <option key={`dep-${d}`} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block flex items-center gap-1.5"><span className="text-indigo-500">📍</span> Destination</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex items-center gap-1.5"><span className="text-indigo-500">📍</span> Destination</label>
               <select
                 value={formData.destination}
                 onChange={(e) => setFormData({...formData, destination: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner text-sm"
               >
-                <option value="">Select Destination</option>
+                <option value="" disabled>Select Destination</option>
                 {validDestinations.map(d => <option key={`dest-${d}`} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block flex items-center gap-1.5"><span className="text-indigo-500">⏱</span> Duration</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex items-center gap-1.5"><span className="text-indigo-500">⏱</span> Duration</label>
               <select
                 value={formData.duration}
                 onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner text-sm"
               >
                 {[1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(d => <option key={d} value={d}>{d} Days</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block flex items-center gap-1.5"><span className="text-indigo-500">💸</span> Budget (€)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex items-center gap-1.5"><span className="text-indigo-500">💸</span> Budget (€)</label>
               <input
                 type="number"
                 value={formData.budget}
                 onChange={(e) => setFormData({...formData, budget: e.target.value})}
                 placeholder="Ex: 800"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 shadow-inner"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 shadow-inner text-sm"
               />
             </div>
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block flex items-center gap-1.5"><span className="text-indigo-500">🎭</span> Travel Style</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex items-center gap-1.5"><span className="text-indigo-500">🎭</span> Travel Style</label>
               <select
                 value={formData.travelStyle}
                 onChange={(e) => setFormData({...formData, travelStyle: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-inner text-sm"
               >
                 {["Cultural", "Adventure", "Relaxing", "Family", "Luxury", "Romantic"].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -417,7 +442,7 @@ export default function AIForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-black p-5 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all text-lg uppercase tracking-widest"
+            className="w-full mt-2 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-black p-4 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all text-base uppercase tracking-widest"
           >
             {loading ? "Curating Your Itinerary..." : "Plan Your Dream Trip"}
           </button>
@@ -448,19 +473,10 @@ export default function AIForm() {
                   ? msg.content
                   : msg.content.split("\n\n").map((para, idx) => <p key={idx} className={`mb-2 leading-relaxed font-bold ${msg.role==="user"?"text-2xl text-emerald-400":""}`}>{para}</p>)}
                 
-                {msg.role === "ai" && msg.rawData && !msg.isSaved && (
-                  <button
-                    onClick={() => saveTrip(msg.rawData, i)}
-                    className="mt-10 w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-5 rounded-2xl transition-all shadow-xl hover:-translate-y-1 flex justify-center items-center gap-3 text-lg"
-                  >
-                    <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                    Save to My Trips
-                  </button>
-                )}
-                {msg.isSaved && (
-                  <div className="mt-10 w-full bg-emerald-50 border-2 border-emerald-200 text-emerald-700 font-black py-5 rounded-2xl flex justify-center items-center gap-3 text-lg">
-                    <svg className="w-7 h-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    Trip Saved Successfully!
+                {msg.isSaved && msg.role === "ai" && (
+                  <div className="mt-10 w-full bg-indigo-50 border-2 border-indigo-200 text-indigo-700 font-black py-5 rounded-2xl flex justify-center items-center gap-3 text-lg">
+                    <svg className="w-7 h-7 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    Trip Automatically Saved to History!
                   </div>
                 )}
               </div>
@@ -482,38 +498,38 @@ export default function AIForm() {
           </div>
         ) : (
           /* Travel Inspiration Cards to fill empty state playfully */
-          <div className="mt-4 text-left border-t border-slate-100 pt-8">
-            <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
-              <span className="bg-orange-100 text-orange-600 p-2.5 rounded-xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg></span>
+          <div className="mt-2 text-left border-t border-slate-100 pt-6">
+            <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+              <span className="bg-orange-100 text-orange-600 p-2 rounded-lg"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg></span>
               Quick Travel Inspiration / Tap to Auto-Fill
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div 
                 onClick={() => handleInspirationClick("Bali", "Relaxing", "1200")}
-                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:border-orange-200 transition-all hover:-translate-y-2"
+                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all hover:-translate-y-1"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600 border border-orange-100 rounded-[1.2rem] flex items-center justify-center text-3xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">🌅</div>
-                <h4 className="font-black text-slate-800 text-2xl mb-1">Paradise in Bali</h4>
-                <p className="text-slate-500 font-bold text-sm mb-6 bg-slate-50 inline-block px-3 py-1 rounded-lg">5 Days • Relaxing • ~€1200</p>
-                <div className="text-orange-600 font-bold text-sm flex items-center gap-2 group-hover:gap-3 transition-all bg-orange-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600 border border-orange-100 rounded-[1rem] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">🌅</div>
+                <h4 className="font-black text-slate-800 text-xl mb-1">Paradise in Bali</h4>
+                <p className="text-slate-500 font-bold text-[11px] mb-3 bg-slate-50 inline-block px-2.5 py-1 rounded-md">5 Days • Relaxing • ~€1200</p>
+                <div className="text-orange-600 font-bold text-[12px] flex items-center gap-1.5 group-hover:gap-2 transition-all bg-orange-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
               </div>
               <div 
                 onClick={() => handleInspirationClick("Paris", "Romantic", "1500")}
-                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:border-pink-200 transition-all hover:-translate-y-2"
+                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-pink-200 transition-all hover:-translate-y-1"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-50 to-pink-100 text-pink-600 border border-pink-100 rounded-[1.2rem] flex items-center justify-center text-3xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">🗼</div>
-                <h4 className="font-black text-slate-800 text-2xl mb-1">Romance in Paris</h4>
-                <p className="text-slate-500 font-bold text-sm mb-6 bg-slate-50 inline-block px-3 py-1 rounded-lg">5 Days • Romantic • ~€1500</p>
-                <div className="text-pink-600 font-bold text-sm flex items-center gap-2 group-hover:gap-3 transition-all bg-pink-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-50 to-pink-100 text-pink-600 border border-pink-100 rounded-[1rem] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">🗼</div>
+                <h4 className="font-black text-slate-800 text-xl mb-1">Romance in Paris</h4>
+                <p className="text-slate-500 font-bold text-[11px] mb-3 bg-slate-50 inline-block px-2.5 py-1 rounded-md">5 Days • Romantic • ~€1500</p>
+                <div className="text-pink-600 font-bold text-[12px] flex items-center gap-1.5 group-hover:gap-2 transition-all bg-pink-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
               </div>
               <div 
                 onClick={() => handleInspirationClick("Tokyo", "Cultural", "2000")}
-                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:border-red-200 transition-all hover:-translate-y-2"
+                className="group cursor-pointer bg-white border-2 border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-red-200 transition-all hover:-translate-y-1"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-red-50 to-red-100 text-red-600 border border-red-100 rounded-[1.2rem] flex items-center justify-center text-3xl mb-6 group-hover:scale-110 group-hover:-rotate-6 transition-transform shadow-inner">🍣</div>
-                <h4 className="font-black text-slate-800 text-2xl mb-1">Culture in Tokyo</h4>
-                <p className="text-slate-500 font-bold text-sm mb-6 bg-slate-50 inline-block px-3 py-1 rounded-lg">5 Days • Cultural • ~€2000</p>
-                <div className="text-red-600 font-bold text-sm flex items-center gap-2 group-hover:gap-3 transition-all bg-red-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
+                <div className="w-12 h-12 bg-gradient-to-br from-red-50 to-red-100 text-red-600 border border-red-100 rounded-[1rem] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:-rotate-6 transition-transform shadow-inner">🍣</div>
+                <h4 className="font-black text-slate-800 text-xl mb-1">Culture in Tokyo</h4>
+                <p className="text-slate-500 font-bold text-[11px] mb-3 bg-slate-50 inline-block px-2.5 py-1 rounded-md">5 Days • Cultural • ~€2000</p>
+                <div className="text-red-600 font-bold text-[12px] flex items-center gap-1.5 group-hover:gap-2 transition-all bg-red-50/50 p-2 rounded-lg">Auto-Fill Details <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
               </div>
             </div>
           </div>

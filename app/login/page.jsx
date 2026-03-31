@@ -54,29 +54,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans overflow-hidden bg-slate-950">
-      {/* Pure CSS Dynamic Travel Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Soft glowing orbs representing destinations */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-purple-600/20 blur-[100px] rounded-full animate-pulse" style={{ animationDelay: '4s' }}></div>
-        {/* CSS Pattern (Dotted map grid illusion) */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:24px_24px]"></div>
-      </div>
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#f8fafc] overflow-hidden">
+      {/* Premium Bright Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-[350px] bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-800 rounded-b-[4rem] shadow-2xl z-0"></div>
+      <div className="absolute top-[10%] left-[20%] w-[400px] h-[400px] bg-indigo-500/20 blur-[100px] rounded-full z-0 pointer-events-none"></div>
 
       {/* Floating Back Button */}
-      <Link href="/" className="absolute top-6 left-6 z-20 text-white/70 hover:text-white flex items-center gap-2 text-sm font-medium bg-black/30 hover:bg-black/50 backdrop-blur-md px-4 py-2 rounded-full transition-all border border-white/10">
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      <Link href="/" className="absolute top-6 left-6 z-20 text-white/90 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/10 hover:bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-white/20 shadow-lg">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         Back to Home
       </Link>
 
-      <div className="relative z-10 bg-slate-950/60 backdrop-blur-xl border border-slate-700/50 p-10 rounded-3xl shadow-2xl w-full max-w-md flex flex-col gap-6 transition-all duration-300">
+      <div className="relative z-10 bg-white/95 backdrop-blur-xl border border-white/80 p-10 rounded-3xl shadow-[0_20px_50px_rgba(30,30,80,0.08)] w-full max-w-md flex flex-col gap-6 transition-all duration-300">
 
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Welcome Back</h1>
-          <p className="text-indigo-200">Sign in to plan your next adventure.</p>
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-lg shadow-indigo-500/30 text-white">✈️</div>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight mb-2">Welcome Back</h1>
+          <p className="text-slate-500 font-medium">Sign in to plan your next adventure.</p>
         </div>
 
         {/* Form Elements */}
@@ -84,31 +79,31 @@ export default function LoginPage() {
 
           {/* Error Message Display */}
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-lg text-sm text-center font-medium">
+            <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded-xl text-sm text-center font-bold">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-indigo-100 text-sm mb-1 ml-1 font-medium">Email Address</label>
+            <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
             <input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all placeholder:text-slate-400 placeholder:font-normal"
               required
             />
           </div>
 
           <div>
-            <label className="block text-indigo-100 text-sm mb-1 ml-1 font-medium">Password</label>
+            <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1">Password</label>
             <input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-400"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all placeholder:text-slate-400 placeholder:font-normal"
               required
             />
           </div>
@@ -116,19 +111,27 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold p-3.5 rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black p-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
           >
             {loading ? "Signing in..." : "Login to Travelyx-AI"}
           </button>
         </form>
 
         {/* Footer Navigation */}
-        <p className="text-sm text-center text-indigo-200 mt-2">
-          Don't have an account?{" "}
-          <Link href="/signup" className="text-white hover:text-indigo-400 font-semibold transition-colors underline decoration-indigo-400/30 underline-offset-4">
-            Sign up here
-          </Link>
-        </p>
+        <div className="flex flex-col gap-3 mt-2 border-t border-slate-100 pt-5">
+          <p className="text-sm font-medium text-center text-slate-500">
+            Forgot your password?{" "}
+            <Link href="/forgot-password" className="text-indigo-600 hover:text-indigo-500 font-bold transition-colors underline decoration-indigo-200 underline-offset-4">
+              Reset it here
+            </Link>
+          </p>
+          <p className="text-sm font-medium text-center text-slate-500">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-indigo-600 hover:text-indigo-500 font-bold transition-colors underline decoration-indigo-200 underline-offset-4">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

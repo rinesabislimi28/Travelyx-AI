@@ -131,12 +131,11 @@ Prompt engineering ensures consistent structured responses for DB storage.
 
 ## 🗂 Simplified Database Structure (Supabase)
 
-- **Tables:** users, trips, itineraries, itinerary_days, feedback  
-- Relationships:  
+- **Tables:** users, trips (Modern JSONB architecture)
+- Architecture:  
   - One user → many trips  
-  - One trip → one itinerary  
-  - One itinerary → multiple days  
-- Role-based access control ensures security  
+  - One trip → contains the full AI-generated itinerary dynamically stored via PostgreSQL JSONB  
+- Row Level Security (RLS) ensures strict privacy and data access control
 
 ---
 
