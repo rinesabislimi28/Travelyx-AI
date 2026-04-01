@@ -2,6 +2,8 @@
 
 [![Project Status](https://img.shields.io/badge/status-in%20development-yellow)](#)  
 
+**📍 Live Demo:** [https://travelyx-ai.vercel.app/](https://travelyx-ai.vercel.app/)
+
 ---
 
 ## Table of Contents

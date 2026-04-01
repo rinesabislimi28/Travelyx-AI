@@ -33,7 +33,7 @@ export default function SignupPage() {
 
     if (!name.trim()) return setError("Please enter your full name.");
     if (!email.includes("@")) return setError("Please enter a valid email address.");
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/;
     if (!passwordRegex.test(password)) {
       return setError("Password must be at least 6 characters and contain letters, numbers, and a special character (@$!%*#?&).");
     }
