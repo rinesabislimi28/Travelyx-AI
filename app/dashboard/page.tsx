@@ -12,18 +12,22 @@ import { supabase } from "../../lib/supabaseClient";
  * Includes ALL CRUD Operations: Create (in AIForm), Read, Update, Delete.
  */
 export default function DashboardPage() {
-  const [trips, setTrips] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
-
-  // State for Navigation
-  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
-  const [selectedTrip, setSelectedTrip] = useState<any | null>(null);
-
-  // State for Updating Trips
+  // ----------------------------
+  // CORE STATE MANAGEMENT
+  // ----------------------------
+  const [trips, setTrips] = useState<any[]>([]); // Stores the array of generated trips from Supabase
+  const [loading, setLoading] = useState(true); // Loading indicator for async operations
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({}); // LocalStorage-persisted favorites
+  
+  // Navigation & UI States
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all'); // Toggles sidebar filter
+  const [selectedTrip, setSelectedTrip] = useState<any | null>(null); // The currently viewed trip itinerary
+  
+  // Editing & Deletion States (CRUD operations)
   const [editingTripId, setEditingTripId] = useState<string | null>(null);
   const [editDestination, setEditDestination] = useState("");
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // Controls responsive drawer
+  const [tripToDelete, setTripToDelete] = useState<string | null>(null);
 
   // ----------------------------
   // READ OPERATION (CRUD)
@@ -72,28 +76,31 @@ export default function DashboardPage() {
   // ----------------------------
   // DELETE OPERATION (CRUD)
   // ----------------------------
-  // Permanently removes the record from Supabase. The RLS "Users can delete their own trips"
-  // policy guarantees that malicious users cannot arbitrarily delete records belonging to others.
-  const deleteTrip = async (id: string, e: React.MouseEvent) => {
+  const requestDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const confirmDelete = window.confirm("Are you sure you want to permanently delete this trip from your history?");
-    if (!confirmDelete) return;
+    setTripToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!tripToDelete) return;
 
     try {
-      const { error } = await supabase.from('trips').delete().eq('id', id);
+      const { error } = await supabase.from('trips').delete().eq('id', tripToDelete);
       if (error) throw error;
 
-      setTrips(prev => prev.filter(t => t.id !== id));
-      if (selectedTrip?.id === id) setSelectedTrip(null);
+      setTrips(prev => prev.filter(t => t.id !== tripToDelete));
+      if (selectedTrip?.id === tripToDelete) setSelectedTrip(null);
 
-      if (favorites[id]) {
+      if (favorites[tripToDelete]) {
         const newFavs = { ...favorites };
-        delete newFavs[id];
+        delete newFavs[tripToDelete];
         setFavorites(newFavs);
         localStorage.setItem("travelyx_favorites", JSON.stringify(newFavs));
       }
     } catch (err: any) {
       alert("Failed to delete trip: " + err.message);
+    } finally {
+      setTripToDelete(null);
     }
   };
 
@@ -126,6 +133,10 @@ export default function DashboardPage() {
     }
   };
 
+  // ----------------------------
+  // RENDER HELPERS
+  // ----------------------------
+  // Filters trips dynamically based on the currently selected tab (All vs Favorites)
   const displayedTrips = activeTab === 'favorites' ? trips.filter(t => favorites[t.id]) : trips;
 
   const renderTripView = () => {
@@ -150,7 +161,7 @@ export default function DashboardPage() {
       <div className="w-full min-h-screen relative p-6 md:p-10 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden pt-12 md:pt-20">
         <div className="absolute top-0 left-0 w-full h-[250px] bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-700 rounded-b-[3rem] shadow-xl z-0 overflow-hidden border-b-4 border-indigo-400/20"></div>
 
-        <div className="w-full max-w-5xl z-10 mb-6 flex justify-between items-end">
+        <div className="w-full max-w-5xl z-10 mb-6 flex justify-between items-end px-2 md:px-0">
           <button
             onClick={() => setSelectedTrip(null)}
             className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full hover:bg-white/20 transition-all font-bold shadow-lg"
@@ -159,57 +170,57 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-6 md:p-10 z-10">
-          <div className="mb-6">
-            <p className="font-black text-indigo-900 text-3xl mb-2">{destination}, {country}</p>
-            <p className="mb-4 text-slate-600 leading-relaxed font-medium text-lg">{overview}</p>
-            {local_event_or_festival && <p className="text-purple-600 font-bold mb-3 flex items-center gap-2 bg-purple-50 inline-flex p-2 rounded-xl border border-purple-100"><span className="text-2xl">🎉</span> {local_event_or_festival}</p>}
+        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-4 sm:p-6 md:p-10 z-10">
+          <div className="mb-4 md:mb-6">
+            <p className="font-black text-indigo-900 text-2xl md:text-3xl mb-2">{destination}, {country}</p>
+            <p className="mb-4 text-slate-600 leading-relaxed font-medium text-base md:text-lg">{overview}</p>
+            {local_event_or_festival && <p className="text-purple-600 font-bold mb-4 flex items-center gap-2 bg-purple-50 flex-wrap p-2.5 rounded-xl border border-purple-100 text-sm md:text-base"><span className="text-xl md:text-2xl">🎉</span> {local_event_or_festival}</p>}
             <div className="mt-2">
-              <p className="text-sm font-bold text-slate-500 bg-slate-100 inline-block px-4 py-2 rounded-full uppercase tracking-widest border border-slate-200 shadow-sm">
-                <span className="text-slate-400 mr-2">🌤</span>Best Time to Visit: <span className="text-slate-800 ml-1">{best_time_to_visit}</span>
+              <p className="text-xs md:text-sm font-bold text-slate-500 bg-slate-100 inline-flex px-3 py-1.5 md:px-4 md:py-2 rounded-full uppercase tracking-wider md:tracking-widest border border-slate-200 shadow-sm items-center gap-1.5 w-fit">
+                <span className="text-slate-400">🌤</span><span className="hidden sm:inline">Best Time to Visit:</span> <span className="text-slate-800">{best_time_to_visit}</span>
               </p>
             </div>
           </div>
 
-          <div className="mb-10 mt-8">
-            <h3 className="font-extrabold text-slate-800 text-2xl mb-8 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
-              <svg className="w-7 h-7 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
+          <div className="mb-8 md:mb-10 mt-6 md:mt-8">
+            <h3 className="font-extrabold text-slate-800 text-xl md:text-2xl mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
+              <svg className="w-6 h-6 md:w-7 md:h-7 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
               Daily Itinerary
             </h3>
-            <div className="relative border-l-4 border-indigo-100 ml-5 md:ml-6 pb-2">
+            <div className="relative border-l-4 border-indigo-100 ml-3 md:ml-6 pb-2">
               {itinerary.length > 0 ? itinerary.map((day: any, idx: number) => {
                 const dayNum = day.day ?? (idx + 1);
                 const morning = day.morning ?? ["Free time"];
                 const afternoon = day.afternoon ?? ["Free time"];
                 const evening = day.evening ?? ["Free time"];
                 return (
-                  <div key={dayNum} className="mb-12 relative pl-10 md:pl-12">
-                    <div className="absolute left-[-22px] top-0 bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg ring-8 ring-[#ffffff] text-lg">
+                  <div key={dayNum} className="mb-8 md:mb-12 relative pl-6 md:pl-12">
+                    <div className="absolute left-[-18px] md:left-[-22px] top-0 bg-indigo-600 text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold shadow-lg ring-4 md:ring-8 ring-[#ffffff] text-sm md:text-lg">
                       {dayNum}
                     </div>
 
-                    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
-                      <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
-                        <h4 className="font-black text-indigo-950 text-xl tracking-tight">Day {dayNum}</h4>
+                    <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 md:px-6 md:py-4">
+                        <h4 className="font-black text-indigo-950 text-lg md:text-xl tracking-tight">Day {dayNum}</h4>
                       </div>
-                      <div className="p-6 md:p-8 flex flex-col gap-5">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                            <h5 className="font-black text-orange-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm"></div> Morning</h5>
-                            <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                              {morning.map((act: string, i: number) => <li key={i} className="flex gap-2.5 items-start"><span className="text-orange-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                      <div className="p-4 md:p-8 flex flex-col gap-4 md:gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+                          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-orange-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                            <h5 className="font-black text-orange-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm"></div> Morning</h5>
+                            <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                              {morning.map((act: string, i: number) => <li key={i} className="flex gap-2 items-start"><span className="text-orange-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                             </ul>
                           </div>
-                          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                            <h5 className="font-black text-emerald-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Afternoon</h5>
-                            <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                              {afternoon.map((act: string, i: number) => <li key={i} className="flex gap-2.5 items-start"><span className="text-emerald-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-emerald-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                            <h5 className="font-black text-emerald-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Afternoon</h5>
+                            <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                              {afternoon.map((act: string, i: number) => <li key={i} className="flex gap-2 items-start"><span className="text-emerald-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                             </ul>
                           </div>
-                          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                            <h5 className="font-black text-indigo-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm"></div> Evening</h5>
-                            <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                              {evening.map((act: string, i: number) => <li key={i} className="flex gap-2.5 items-start"><span className="text-indigo-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-indigo-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                            <h5 className="font-black text-indigo-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-indigo-500 shadow-sm"></div> Evening</h5>
+                            <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                              {evening.map((act: string, i: number) => <li key={i} className="flex gap-2 items-start"><span className="text-indigo-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                             </ul>
                           </div>
                         </div>
@@ -221,7 +232,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-slate-50 border-2 border-slate-200 p-8 rounded-[2rem] shadow-sm relative overflow-hidden">
+          <div className="bg-slate-50 border-2 border-slate-200 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm relative overflow-hidden">
             <p className="font-black text-slate-800 mb-6 text-2xl flex items-center gap-3">💰 Estimated Budget Breakdown</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -264,14 +275,19 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row overflow-hidden relative">
+      <div className="min-h-screen bg-[#fafcff] flex flex-col lg:flex-row overflow-hidden relative font-sans">
+        {/* Dynamic Vibrant Mesh Background */}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-40">
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
+          <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-sky-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
+        </div>
         {/* Mobile Sidebar Overlay */}
         {isMobileSidebarOpen && (
           <div className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsMobileSidebarOpen(false)}></div>
         )}
 
         {/* Left Sidebar: Saved Trips */}
-        <aside className={`fixed lg:relative top-0 left-0 w-full sm:w-[350px] lg:w-[420px] h-screen bg-white border-r border-slate-200 p-5 lg:p-6 flex flex-col overflow-y-auto shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transition-transform duration-300 custom-scrollbar-light ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <aside className={`fixed lg:relative top-0 left-0 w-full sm:w-[350px] lg:w-[420px] h-screen glass-panel p-5 lg:p-6 flex flex-col overflow-y-auto shrink-0 border-r border-slate-200/50 shadow-[4px_0_40px_rgba(30,30,90,0.05)] z-50 transition-transform duration-500 custom-scrollbar-light ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
           <div className="flex items-center justify-between mb-5 sticky top-0 bg-white z-30 pb-3 pt-1 border-b border-transparent">
             <h2 className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-br from-indigo-700 to-purple-600 tracking-tight">Travel History</h2>
             <div className="flex items-center gap-2">
@@ -362,7 +378,7 @@ export default function DashboardPage() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </button>
                     <button
-                      onClick={(e) => deleteTrip(trip.id, e)}
+                      onClick={(e) => requestDelete(trip.id, e)}
                       className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 bg-white shadow-sm border border-slate-100 transition-colors"
                       title="Delete Trip Permanently"
                     >
@@ -458,6 +474,36 @@ export default function DashboardPage() {
             {selectedTrip ? renderTripView() : <AIForm onTripGenerated={fetchTrips} />}
           </div>
         </main>
+
+        {/* Delete Confirmation Modal */}
+        {tripToDelete && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setTripToDelete(null)}></div>
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 overflow-hidden transform transition-all scale-100 opacity-100 animate-fade-in-up">
+              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 shadow-sm">
+                <span className="text-3xl">🗑️</span>
+              </div>
+              <h3 className="text-xl font-black text-center text-slate-800 mb-2">Delete Trip?</h3>
+              <p className="text-sm font-medium text-slate-500 text-center mb-6 px-2">
+                Are you sure you want to permanently delete this trip? This action cannot be undone.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setTripToDelete(null)}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition-colors border border-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-red-500/30"
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <style dangerouslySetInnerHTML={{
         __html: `

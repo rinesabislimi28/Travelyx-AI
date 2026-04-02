@@ -74,6 +74,11 @@ export default function ProfilePage() {
   };
 
   // --- 2. UPDATE PASSWORD ---
+  /**
+   * handleUpdatePassword
+   * Securely authenticates and updates the user's password utilizing Supabase.
+   * Enforces strict regex policies (at least 6 chars, 1 letter, 1 number, 1 special char).
+   */
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
@@ -81,6 +86,11 @@ export default function ProfilePage() {
     }
     if (newPassword !== confirmPassword) {
       return showFeedback("error", "Passwords do not match.");
+    }
+
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return showFeedback("error", "Password must contain at least one letter, one number, and one special character.");
     }
 
     setIsUpdatingPassword(true);
@@ -99,6 +109,12 @@ export default function ProfilePage() {
   };
 
   // --- 3. DELETE ACCOUNT ---
+  /**
+   * handleDeleteAccount
+   * Calls a dedicated server-side API route (/api/delete-user) using the
+   * Service Role Key to bypass RLS and completely erase the user's Auth record.
+   * Cascade deletes automatically remove associated 'trips' from the database.
+   */
   const handleDeleteAccount = async () => {
     if (deleteAccountText !== "DELETE") {
       return showFeedback("error", "Please type DELETE in all caps to confirm.");
@@ -153,11 +169,15 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#f8fafc] relative flex flex-col items-center py-10 px-4 sm:px-6 overflow-x-hidden">
+      <div className="min-h-screen bg-[#fafcff] relative flex flex-col items-center py-10 px-4 sm:px-6 overflow-x-hidden">
         
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-[350px] bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-800 rounded-b-[4rem] shadow-2xl z-0 border-b border-indigo-500/30"></div>
-        <div className="absolute top-[5%] left-[20%] w-[400px] h-[400px] bg-indigo-500/20 blur-[100px] rounded-full z-0"></div>
+        {/* Dynamic Vibrant Header Mesh */}
+        <div className="absolute top-0 left-0 w-full h-[350px] bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b border-white/20">
+           <div className="absolute inset-0 opacity-40 mix-blend-color-dodge pointer-events-none">
+              <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-cyan-400 blur-[80px] rounded-full animate-blob"></div>
+              <div className="absolute bottom-[-20%] right-[-10%] w-[350px] h-[350px] bg-pink-400 blur-[80px] rounded-full animate-blob animation-delay-2000"></div>
+           </div>
+        </div>
 
         <div className="w-full max-w-5xl z-10 flex justify-between items-center mb-4 pt-4">
           <Link href="/dashboard" className="text-slate-800 bg-white hover:bg-slate-50 px-5 py-2.5 rounded-full font-bold transition-all flex items-center gap-2 shadow-xl hover:-translate-x-1 hover:shadow-indigo-500/20 text-sm">

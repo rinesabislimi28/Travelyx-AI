@@ -133,15 +133,20 @@ export default function AIForm({ onTripGenerated = () => {} }) {
     if (!formData.budget) return setError("❌ Please enter a budget.");
     if (isNaN(formData.budget) || Number(formData.budget) < 1) return setError("❌ Budget must be a valid positive number.");
 
-    // Structure the comprehensive prompt mapped directly to system instructions
+    // Structure the comprehensive prompt mapped directly to system instructions.
+    // This string relies on the LLM (Llama 3 via Groq) understanding the context
+    // and strictly outputting matching JSON formats.
     const prompt = `Create a detailed ${formData.duration}-day ${formData.travelStyle} itinerary departing from ${formData.departure} and traveling to ${formData.destination} with a budget of ${formData.budget} euros. Make sure the total JSON output covers exactly ${formData.duration} days.`;
     const userDisplay = `🛫 ${formData.departure} ➔ 🛬 ${formData.destination} | ⏱ ${formData.duration} Days | 💰 ${formData.budget}€ | 🎨 ${formData.travelStyle}`;
 
+    // Add user message to UI state for chat display
     setMessages(prev => [...prev.slice(-49), { role: "user", content: userDisplay }]);
     setError(null);
     setLoading(true);
 
     try {
+      // Execute REST POST request specifically to our internal Next.js App Route helper
+      // Located at /api/chat which securely calls the Groq AI API server-side
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -181,62 +186,62 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
         aiContent = (
           <div className="w-full">
-            <div className="mb-6">
-              <p className="font-black text-indigo-900 text-3xl mb-2">{destination}, {country}</p>
-              <p className="mb-4 text-slate-600 leading-relaxed font-medium text-lg">{overview}</p>
-              {local_event_or_festival && <p className="text-purple-600 font-bold mb-3 flex items-center gap-2 bg-purple-50 inline-flex p-2 rounded-xl border border-purple-100"><span className="text-2xl">🎉</span> {local_event_or_festival}</p>}
+            <div className="mb-4 md:mb-6">
+              <p className="font-black text-indigo-900 text-2xl md:text-3xl mb-2">{destination}, {country}</p>
+              <p className="mb-4 text-slate-600 leading-relaxed font-medium text-base md:text-lg">{overview}</p>
+              {local_event_or_festival && <p className="text-purple-600 font-bold mb-4 flex items-center gap-2 bg-purple-50 flex-wrap p-2.5 rounded-xl border border-purple-100 text-sm md:text-base"><span className="text-xl md:text-2xl">🎉</span> {local_event_or_festival}</p>}
               <div className="mt-2">
-                 <p className="text-sm font-bold text-slate-500 bg-slate-100 inline-block px-4 py-2 rounded-full uppercase tracking-widest border border-slate-200 shadow-sm align-middle">
-                   <span className="text-slate-400 mr-2">🌤</span>Best Time to Visit: <span className="text-slate-800 ml-1">{best_time_to_visit}</span>
+                 <p className="text-xs md:text-sm font-bold text-slate-500 bg-slate-100 inline-flex px-3 py-1.5 md:px-4 md:py-2 rounded-full uppercase tracking-wider md:tracking-widest border border-slate-200 shadow-sm items-center gap-1.5 w-fit">
+                   <span className="text-slate-400">🌤</span><span className="hidden sm:inline">Best Time to Visit:</span> <span className="text-slate-800">{best_time_to_visit}</span>
                  </p>
               </div>
             </div>
 
             {/* TIMELINE ITINERARY */}
-            <div className="mb-10 mt-8">
-              <h3 className="font-extrabold text-slate-800 text-2xl mb-8 flex items-center gap-3 border-b-2 border-slate-100 pb-4"><svg className="w-7 h-7 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg> Daily Itinerary</h3>
-              <div className="relative border-l-4 border-indigo-100 ml-5 md:ml-6 pb-2">
+            <div className="mb-8 md:mb-10 mt-6 md:mt-8">
+              <h3 className="font-extrabold text-slate-800 text-xl md:text-2xl mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4"><svg className="w-6 h-6 md:w-7 md:h-7 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg> Daily Itinerary</h3>
+              <div className="relative border-l-4 border-indigo-100 ml-3 md:ml-6 pb-2">
                 {itinerary.length > 0 ? itinerary.map((day, idx) => {
                   const dayNum = day.day ?? (idx + 1);
                   const morning = day.morning ?? ["Free time"];
                   const afternoon = day.afternoon ?? ["Free time"];
                   const evening = day.evening ?? ["Free time"];
                   return (
-                    <div key={dayNum} className="mb-12 relative pl-10 md:pl-12">
+                    <div key={dayNum} className="mb-8 md:mb-12 relative pl-6 md:pl-12">
                       {/* Timeline Dot */}
-                      <div className="absolute left-[-22px] top-0 bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg ring-8 ring-[#ffffff] text-lg">
+                      <div className="absolute left-[-18px] md:left-[-22px] top-0 bg-indigo-600 text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold shadow-lg ring-4 md:ring-8 ring-[#ffffff] text-sm md:text-lg">
                         {dayNum}
                       </div>
                       
                       {/* Day Card */}
-                      <div className="bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 group">
-                        <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
-                          <h4 className="font-black text-indigo-950 text-xl tracking-tight">Day {dayNum}</h4>
+                      <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 group">
+                        <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center">
+                          <h4 className="font-black text-indigo-950 text-lg md:text-xl tracking-tight">Day {dayNum}</h4>
                         </div>
-                        <div className="p-6 md:p-8 flex flex-col gap-5">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div className="p-4 md:p-8 flex flex-col gap-4 md:gap-5">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
                              {/* Morning */}
-                             <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                                <div className="absolute top-2 right-3 text-4xl opacity-10 drop-shadow-sm">🌅</div>
-                                <h5 className="font-black text-orange-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm"></div> Morning</h5>
-                                <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                                  {morning.map((act, i) => <li key={i} className="flex gap-2.5 items-start"><span className="text-orange-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                             <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-orange-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                                <div className="absolute top-2 right-3 text-3xl md:text-4xl opacity-10 drop-shadow-sm">🌅</div>
+                                <h5 className="font-black text-orange-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm"></div> Morning</h5>
+                                <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                                  {morning.map((act, i) => <li key={i} className="flex gap-2 items-start"><span className="text-orange-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                                 </ul>
                              </div>
                              {/* Afternoon */}
-                             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                                <div className="absolute top-2 right-3 text-4xl opacity-10 drop-shadow-sm">☀️</div>
-                                <h5 className="font-black text-emerald-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Afternoon</h5>
-                                <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                                  {afternoon.map((act, i) => <li key={i} className="flex gap-2.5 items-start"><span className="text-emerald-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-emerald-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                                <div className="absolute top-2 right-3 text-3xl md:text-4xl opacity-10 drop-shadow-sm">☀️</div>
+                                <h5 className="font-black text-emerald-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Afternoon</h5>
+                                <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                                  {afternoon.map((act, i) => <li key={i} className="flex gap-2 items-start"><span className="text-emerald-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                                 </ul>
                              </div>
                              {/* Evening */}
-                             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100/60 relative overflow-hidden transition-all hover:shadow-md">
-                                <div className="absolute top-2 right-3 text-4xl opacity-10 drop-shadow-sm">🌙</div>
-                                <h5 className="font-black text-indigo-600 mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm"></div> Evening</h5>
-                                <ul className="list-none space-y-2 text-slate-800 font-medium text-sm leading-relaxed">
-                                  {evening.map((act, i) => <li key={i} className="flex gap-2.5 items-start"><span className="text-indigo-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
+                             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl md:rounded-2xl p-4 md:p-5 border border-indigo-100/60 relative overflow-hidden transition-all hover:shadow-md">
+                                <div className="absolute top-2 right-3 text-3xl md:text-4xl opacity-10 drop-shadow-sm">🌙</div>
+                                <h5 className="font-black text-indigo-600 mb-2 md:mb-3 uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2"><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-indigo-500 shadow-sm"></div> Evening</h5>
+                                <ul className="list-none space-y-1.5 md:space-y-2 text-slate-800 font-medium text-xs md:text-sm leading-relaxed">
+                                  {evening.map((act, i) => <li key={i} className="flex gap-2 items-start"><span className="text-indigo-400 mt-0.5">•</span><span className="flex-1">{act}</span></li>)}
                                 </ul>
                              </div>
                           </div>
@@ -249,7 +254,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
             </div>
 
             {/* BUDGET SECTION */}
-            <div className="bg-slate-50 border-2 border-slate-200 p-8 rounded-[2rem] shadow-sm relative overflow-hidden">
+            <div className="bg-slate-50 border-2 border-slate-200 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm relative overflow-hidden">
               <div className="absolute top-[-30px] right-[-20px] text-9xl opacity-[0.03]">💸</div>
               <p className="font-black text-slate-800 mb-6 text-2xl flex items-center gap-3">💰 Estimated Budget Breakdown</p>
               
@@ -329,8 +334,12 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
   return (
     <div className="w-full min-h-screen relative p-4 md:p-6 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden">
-      {/* Dynamic Background */}
-      <div className="absolute top-0 left-0 w-full h-[250px] md:h-[300px] bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-700 rounded-b-[3rem] md:rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b-4 border-indigo-400/20">
+      {/* Dynamic Vibrant Header Background */}
+      <div className="absolute top-0 left-0 w-full h-[250px] md:h-[300px] bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 rounded-b-[3rem] md:rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b border-white/20">
+         <div className="absolute inset-0 opacity-40 mix-blend-color-dodge pointer-events-none">
+            <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-cyan-400 blur-[80px] rounded-full animate-blob"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[350px] h-[350px] bg-pink-400 blur-[80px] rounded-full animate-blob animation-delay-2000"></div>
+         </div>
          {/* Decorative shapes to make it look premium */}
          <div className="absolute top-[-10%] right-[-5%] w-[350px] h-[350px] bg-white opacity-5 rounded-full blur-3xl"></div>
          <div className="absolute bottom-[-10%] left-[-5%] w-[250px] h-[250px] bg-emerald-400 opacity-10 rounded-full blur-3xl"></div>
@@ -375,10 +384,10 @@ export default function AIForm({ onTripGenerated = () => {} }) {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-5 md:p-6 z-10 flex flex-col mb-6 min-h-[400px]">
+      <div className="w-full max-w-6xl glass-panel hover-float rounded-[1.5rem] md:rounded-[2rem] p-4 sm:p-6 md:p-8 z-10 flex flex-col mb-6 min-h-[400px] border border-white/80">
         
         {/* Simple & Clean Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 mb-6 bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 mb-6 bg-white p-4 md:p-5 rounded-[1.25rem] shadow-sm border border-slate-100">
           <div className="flex justify-between items-center mb-2">
              <div className="flex items-center gap-2">
                <span className="text-xl bg-indigo-50 p-2 rounded-xl border border-indigo-100 shadow-sm">✨</span>
@@ -442,7 +451,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-black p-4 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all text-base uppercase tracking-widest"
+            className="w-full mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white font-black p-4 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)] hover:-translate-y-1 transition-all text-base uppercase tracking-widest relative overflow-hidden"
           >
             {loading ? "Curating Your Itinerary..." : "Plan Your Dream Trip"}
           </button>
@@ -457,13 +466,13 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
         {/* Chat / Result Box */}
         {messages.length > 0 || loading ? (
-          <div className="flex-1 flex flex-col gap-8 p-2 lg:p-4 rounded-3xl min-h-[400px] overflow-y-auto custom-scrollbar">
+          <div className="flex-1 flex flex-col gap-6 md:gap-8 p-1 md:p-2 lg:p-4 rounded-3xl min-h-[400px] overflow-y-auto custom-scrollbar">
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`p-6 md:p-8 rounded-[2rem] max-w-full md:max-w-full shadow-sm transition-all ${msg.role === "user"
+                className={`p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] max-w-full md:max-w-full shadow-sm transition-all ${msg.role === "user"
                     ? "self-end bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 text-white rounded-tr-sm shadow-xl items-center text-center w-full"
-                    : "self-start bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-xl w-full"
+                    : "self-start bg-white border border-slate-200 text-slate-800 rounded-tl-[0.5rem] shadow-xl w-full"
                   }`}
               >
                 <div className={`flex items-center gap-2 mb-4 opacity-90 text-sm font-black uppercase tracking-widest ${msg.role==="user"?"text-slate-300 justify-center":"text-slate-400"}`}>

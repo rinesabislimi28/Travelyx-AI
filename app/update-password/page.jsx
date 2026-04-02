@@ -13,18 +13,50 @@ export default function UpdatePasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Supabase needs time to parse the `#access_token=...` hash from the email link.
-    // If we aggressively check getSession() too early, it will resolve as null and kick the user out.
-    // Instead, we let the component render and optionally listen to auth state changes.
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    // Escalate immediately on Auth State Change
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth Event in Update Password:", event);
       if (event === "PASSWORD_RECOVERY") {
         console.log("Password recovery token parsed perfectly.");
       }
     });
 
+    // Handle PKCE code exchange manually if present in URL
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setError("Recovery link expired or invalid! Please request a new link.");
+        }
+        // Remove code from URL after exchange
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    } else if (window.location.hash) {
+       const hashStr = window.location.hash.substring(1);
+       const hashParams = new URLSearchParams(hashStr);
+       
+       if (hashParams.has("error_description")) {
+         setError(hashParams.get("error_description")?.replace(/\+/g, " ") || "Invalid recovery link.");
+       } else if (hashParams.has("access_token") && hashParams.has("refresh_token")) {
+         // Bulletproof implicit flow session setting
+         supabase.auth.setSession({
+           access_token: hashParams.get("access_token"),
+           refresh_token: hashParams.get("refresh_token")
+         }).then(({ error }) => {
+           if (error) {
+             setError("Failed to establish secure session from link.");
+           } else {
+             window.history.replaceState({}, document.title, window.location.pathname);
+           }
+         });
+       }
+    }
+
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -35,6 +67,11 @@ export default function UpdatePasswordPage() {
 
     if (newPassword.length < 6) return setError("Password must be at least 6 characters.");
     if (newPassword !== confirmPassword) return setError("Passwords do not match.");
+
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return setError("Password must contain at least one letter, one number, and one special character.");
+    }
 
     setLoading(true);
 
@@ -57,10 +94,15 @@ export default function UpdatePasswordPage() {
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#f8fafc] overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[350px] bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-800 rounded-b-[4rem] shadow-2xl z-0"></div>
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#fafcff] overflow-hidden">
+      {/* Dynamic Vibrant Mesh Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-pink-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-300/30 blur-[120px] rounded-full animate-blob animation-delay-4000 mix-blend-multiply"></div>
+      </div>
 
-      <div className="relative z-10 bg-white/95 backdrop-blur-xl border border-white/80 p-8 rounded-3xl shadow-[0_20px_50px_rgba(30,30,80,0.08)] w-full max-w-md flex flex-col gap-6">
+      <div className="relative z-10 glass-panel hover-float p-6 md:p-8 rounded-3xl w-full max-w-md flex flex-col gap-5 md:gap-6 transition-all duration-500">
         
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-lg shadow-indigo-500/30 text-white">🔑</div>

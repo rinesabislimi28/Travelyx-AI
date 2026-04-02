@@ -2,7 +2,10 @@
 
 [![Project Status](https://img.shields.io/badge/status-in%20development-yellow)](#)  
 
-**📍 Live Demo:** [https://travelyx-ai.vercel.app/](https://travelyx-ai.vercel.app/)
+## 🌐 Live Demo & Description
+[Click here to view live](https://travelyx-ai.vercel.app)
+
+**Description:** Travelyx-AI is an advanced Artificial Intelligence application that allows users to generate detailed travel itineraries, estimate budgets, and securely save and manage their trips using a cloud database. This project fulfills all the requirements for Checkpoint 2.
 
 ---
 

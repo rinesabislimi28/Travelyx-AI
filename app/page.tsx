@@ -1,14 +1,22 @@
+/**
+ * Landing Page Component (app/page.tsx)
+ * ---------------------------------------
+ * Serves as the public-facing entry point of Travelyx-AI.
+ * Features a modern, fully responsive UI utilizing Tailwind CSS gradients, 
+ * glassmorphism effects, and highly optimized layouts for both desktop and mobile.
+ */
 import Link from "next/link";
 import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 selection:bg-indigo-500/30 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#fafcff] text-slate-800 selection:bg-indigo-500/30 font-sans overflow-x-hidden relative">
       
-      {/* Dynamic Background Elements */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+      {/* Dynamic Vibrant Mesh Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-pink-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-300/30 blur-[120px] rounded-full animate-blob animation-delay-4000 mix-blend-multiply"></div>
       </div>
 
       {/* Navigation */}
@@ -40,7 +48,7 @@ export default function LandingPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-sm font-bold mb-8 shadow-sm">
            ✨ Llama 3 Powered App
         </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight text-slate-900">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 md:mb-8 leading-tight text-slate-900 px-2">
           Your Personal  <br className="hidden md:block"/>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
             AI Travel Agent
@@ -50,8 +58,8 @@ export default function LandingPage() {
           Tell us your budget and travel style. In just 5 seconds, our AI will generate a complete Day 1 to Day 7 itinerary with activities, simulated costs, and local tips mapped out for you.
         </p>
         
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-full font-bold text-lg shadow-[0_0_30px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_0_40px_-5px_rgba(79,70,229,0.6)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 group">
+        <div className="flex flex-col sm:flex-row items-center gap-4 relative z-20">
+          <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white rounded-full font-black text-lg shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)] hover:shadow-[0_0_50px_-5px_rgba(168,85,247,0.9)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 group">
             Start Planning For Free
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -135,40 +143,43 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Feature 1 */}
-            <div className="group bg-white border border-slate-200 hover:border-indigo-400 rounded-3xl p-8 shadow-xl shadow-slate-200/50 transition-all duration-300 hover:-translate-y-2">
-              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
+            <div className="group glass-panel hover-float rounded-[2rem] p-8 border-t-4 border-t-indigo-400 relative overflow-hidden">
+              <div className="absolute top-[-50%] right-[-50%] w-[100%] h-[100%] bg-indigo-400/10 blur-[50px] rounded-full"></div>
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 shadow-sm transition-all border border-indigo-200">
                 <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Lightning Fast</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">
+              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Lightning Fast</h3>
+              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
                 Generate full 7-day itineraries categorized by morning, afternoon, and evening in just seconds powered by Groq API.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="group bg-white border border-slate-200 hover:border-purple-400 rounded-3xl p-8 shadow-xl shadow-slate-200/50 transition-all duration-300 hover:-translate-y-2">
-              <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-purple-100 transition-all">
+            <div className="group glass-panel hover-float rounded-[2rem] p-8 border-t-4 border-t-purple-400 relative overflow-hidden">
+              <div className="absolute top-[-50%] right-[-50%] w-[100%] h-[100%] bg-purple-400/10 blur-[50px] rounded-full"></div>
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 shadow-sm transition-all border border-purple-200">
                 <svg className="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Smart Budgeting</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">
+              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Smart Budgeting</h3>
+              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
                 Receive instant simulated estimations for flights, hotels, and daily activities to ensure your trip fits your wallet perfectly.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="group bg-white border border-slate-200 hover:border-pink-400 rounded-3xl p-8 shadow-xl shadow-slate-200/50 transition-all duration-300 hover:-translate-y-2">
-              <div className="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-pink-100 transition-all">
+            <div className="group glass-panel hover-float rounded-[2rem] p-8 border-t-4 border-t-pink-400 relative overflow-hidden">
+              <div className="absolute top-[-50%] right-[-50%] w-[100%] h-[100%] bg-pink-400/10 blur-[50px] rounded-full"></div>
+              <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 shadow-sm transition-all border border-pink-200">
                 <svg className="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Export & Go</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">
+              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Export & Go</h3>
+              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
                 Save your trips automatically to your account or beautifully export them as PDF documents to share with friends and family.
               </p>
             </div>
