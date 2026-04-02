@@ -54,21 +54,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#fafcff] overflow-hidden">
-      {/* Dynamic Vibrant Mesh Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-pink-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-300/30 blur-[120px] rounded-full animate-blob animation-delay-4000 mix-blend-multiply"></div>
-      </div>
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-slate-50 overflow-hidden">
+      {/* Professional Dark Header Background */}
+      <div className="absolute top-0 left-0 w-full h-[350px] bg-slate-900 rounded-b-[4rem] shadow-xl z-0"></div>
 
       {/* Floating Back Button */}
-      <Link href="/" className="absolute top-6 left-6 z-20 text-slate-600 hover:text-indigo-600 flex items-center gap-2 text-sm font-bold bg-white/60 hover:bg-white backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-slate-200 shadow-sm">
+      <Link href="/" className="absolute top-6 left-6 z-20 text-slate-300 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/10 hover:bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-white/20 shadow-sm">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         Back to Home
       </Link>
 
-      <div className="relative z-10 glass-panel hover-float p-6 sm:p-10 rounded-3xl w-full max-w-md flex flex-col gap-5 sm:gap-6 transition-all duration-300">
+      <div className="relative z-10 bg-white hover-float p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-md flex flex-col gap-5 sm:gap-6 transition-all duration-300">
 
         {/* Header */}
         <div className="text-center">
@@ -124,13 +120,13 @@ export default function LoginPage() {
         <div className="flex flex-col gap-3 mt-2 border-t border-slate-100 pt-5">
           <p className="text-sm font-medium text-center text-slate-500">
             Forgot your password?{" "}
-            <Link href="/forgot-password" className="text-indigo-600 hover:text-indigo-500 font-bold transition-colors underline decoration-indigo-200 underline-offset-4">
+            <Link href="/forgot-password" className="text-blue-600 hover:text-blue-500 font-bold transition-colors underline decoration-blue-200 underline-offset-4">
               Reset it here
             </Link>
           </p>
           <p className="text-sm font-medium text-center text-slate-500">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-indigo-600 hover:text-indigo-500 font-bold transition-colors underline decoration-indigo-200 underline-offset-4">
+            <Link href="/signup" className="text-blue-600 hover:text-blue-500 font-bold transition-colors underline decoration-blue-200 underline-offset-4">
               Create an account
             </Link>
           </p>

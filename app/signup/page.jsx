@@ -97,21 +97,17 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#fafcff] overflow-hidden">
-      {/* Dynamic Vibrant Mesh Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-pink-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-300/30 blur-[120px] rounded-full animate-blob animation-delay-4000 mix-blend-multiply"></div>
-      </div>
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-slate-50 overflow-hidden">
+      {/* Professional Dark Header Background */}
+      <div className="absolute top-0 left-0 w-full h-[350px] bg-slate-900 rounded-b-[4rem] shadow-xl z-0"></div>
 
       {/* Floating Back Button */}
-      <Link href="/" className="absolute top-6 left-6 z-20 text-slate-600 hover:text-indigo-600 flex items-center gap-2 text-sm font-bold bg-white/60 hover:bg-white backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-slate-200 shadow-sm">
+      <Link href="/" className="absolute top-6 left-6 z-20 text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/10 hover:bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-white/20 shadow-sm">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         Back to Home
       </Link>
 
-      <div className="relative z-10 bg-white/95 backdrop-blur-xl border border-white/80 p-10 rounded-3xl shadow-[0_20px_50px_rgba(30,30,80,0.08)] w-full max-w-md flex flex-col gap-6 transition-all duration-500">
+      <div className="relative z-10 bg-white hover-float p-10 rounded-3xl border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-md flex flex-col gap-6 transition-all duration-300">
 
         {/* Header */}
         <div className="text-center">
@@ -168,7 +164,7 @@ export default function SignupPage() {
               />
             </div>
 
-            <button type="submit" disabled={loading || success.includes("check your email")} className="mt-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black p-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm">
+            <button type="submit" disabled={loading || success.includes("check your email")} className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-black p-3.5 rounded-xl shadow-md shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm">
               {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
@@ -193,7 +189,7 @@ export default function SignupPage() {
           <div className="flex flex-col gap-3 mt-1 border-t border-slate-100 pt-5">
             <p className="text-sm font-medium text-center text-slate-500">
               Already have an account?{" "}
-              <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-bold transition-colors underline decoration-indigo-200 underline-offset-4">
+              <Link href="/login" className="text-blue-600 hover:text-blue-500 font-bold transition-colors underline decoration-blue-200 underline-offset-4">
                 Login here
               </Link>
             </p>

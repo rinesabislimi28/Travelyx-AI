@@ -333,16 +333,9 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
 
   return (
-    <div className="w-full min-h-screen relative p-4 md:p-6 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden">
-      {/* Dynamic Vibrant Header Background */}
-      <div className="absolute top-0 left-0 w-full h-[250px] md:h-[300px] bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 rounded-b-[3rem] md:rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b border-white/20">
-         <div className="absolute inset-0 opacity-40 mix-blend-color-dodge pointer-events-none">
-            <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-cyan-400 blur-[80px] rounded-full animate-blob"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[350px] h-[350px] bg-pink-400 blur-[80px] rounded-full animate-blob animation-delay-2000"></div>
-         </div>
-         {/* Decorative shapes to make it look premium */}
-         <div className="absolute top-[-10%] right-[-5%] w-[350px] h-[350px] bg-white opacity-5 rounded-full blur-3xl"></div>
-         <div className="absolute bottom-[-10%] left-[-5%] w-[250px] h-[250px] bg-emerald-400 opacity-10 rounded-full blur-3xl"></div>
+    <div className="w-full min-h-screen relative p-4 md:p-6 flex flex-col items-center bg-slate-50 overflow-x-hidden">
+      {/* Professional Dark Header Background */}
+      <div className="absolute top-0 left-0 w-full h-[250px] md:h-[300px] bg-slate-900 rounded-b-[3rem] md:rounded-b-[4rem] shadow-xl z-0 overflow-hidden">
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 w-full max-w-6xl z-10 pt-1 gap-4">
@@ -384,7 +377,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl glass-panel hover-float rounded-[1.5rem] md:rounded-[2rem] p-4 sm:p-6 md:p-8 z-10 flex flex-col mb-6 min-h-[400px] border border-white/80">
+      <div className="w-full max-w-6xl bg-white border border-slate-200 rounded-[1.5rem] md:rounded-[2rem] p-4 sm:p-6 md:p-8 z-10 flex flex-col mb-6 min-h-[400px] shadow-sm hover-float">
         
         {/* Simple & Clean Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 mb-6 bg-white p-4 md:p-5 rounded-[1.25rem] shadow-sm border border-slate-100">
@@ -451,7 +444,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white font-black p-4 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)] hover:-translate-y-1 transition-all text-base uppercase tracking-widest relative overflow-hidden"
+            className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-black p-4 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-blue-600/20 hover:-translate-y-1 transition-all text-base uppercase tracking-widest relative overflow-hidden"
           >
             {loading ? "Curating Your Itinerary..." : "Plan Your Dream Trip"}
           </button>

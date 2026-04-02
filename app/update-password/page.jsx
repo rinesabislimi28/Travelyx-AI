@@ -94,15 +94,11 @@ export default function UpdatePasswordPage() {
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-[#fafcff] overflow-hidden">
-      {/* Dynamic Vibrant Mesh Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-pink-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-300/30 blur-[120px] rounded-full animate-blob animation-delay-4000 mix-blend-multiply"></div>
-      </div>
+    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-slate-50 overflow-hidden">
+      {/* Professional Dark Header Background */}
+      <div className="absolute top-0 left-0 w-full h-[350px] bg-slate-900 rounded-b-[4rem] shadow-xl z-0"></div>
 
-      <div className="relative z-10 glass-panel hover-float p-6 md:p-8 rounded-3xl w-full max-w-md flex flex-col gap-5 md:gap-6 transition-all duration-500">
+      <div className="relative z-10 bg-white hover-float p-6 md:p-8 rounded-3xl border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-md flex flex-col gap-5 md:gap-6 transition-all duration-300">
         
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-lg shadow-indigo-500/30 text-white">🔑</div>
@@ -141,7 +137,7 @@ export default function UpdatePasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black p-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
+                className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-black p-3.5 rounded-xl shadow-md shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm"
               >
                 {loading ? "Saving..." : "Update Password"}
               </button>

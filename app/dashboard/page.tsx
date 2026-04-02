@@ -158,8 +158,8 @@ export default function DashboardPage() {
     const remaining = userBudgetNumber - totalSpent;
 
     return (
-      <div className="w-full min-h-screen relative p-6 md:p-10 flex flex-col items-center bg-[#f8fafc] overflow-x-hidden pt-12 md:pt-20">
-        <div className="absolute top-0 left-0 w-full h-[250px] bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-700 rounded-b-[3rem] shadow-xl z-0 overflow-hidden border-b-4 border-indigo-400/20"></div>
+      <div className="w-full min-h-screen relative p-6 md:p-10 flex flex-col items-center bg-slate-50 overflow-x-hidden pt-12 md:pt-20">
+        <div className="absolute top-0 left-0 w-full h-[300px] bg-slate-900 rounded-b-[3rem] shadow-md z-0 overflow-hidden"></div>
 
         <div className="w-full max-w-5xl z-10 mb-6 flex justify-between items-end px-2 md:px-0">
           <button
@@ -170,7 +170,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-3xl border border-white/80 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_50px_rgba(30,30,80,0.08)] p-4 sm:p-6 md:p-10 z-10">
+        <div className="w-full max-w-5xl bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200 shadow-sm p-4 sm:p-6 md:p-10 z-10">
           <div className="mb-4 md:mb-6">
             <p className="font-black text-indigo-900 text-2xl md:text-3xl mb-2">{destination}, {country}</p>
             <p className="mb-4 text-slate-600 leading-relaxed font-medium text-base md:text-lg">{overview}</p>
@@ -275,21 +275,16 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#fafcff] flex flex-col lg:flex-row overflow-hidden relative font-sans">
-        {/* Dynamic Vibrant Mesh Background */}
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-40">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full animate-blob mix-blend-multiply"></div>
-          <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-sky-400/30 blur-[120px] rounded-full animate-blob animation-delay-2000 mix-blend-multiply"></div>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden relative font-sans">
         {/* Mobile Sidebar Overlay */}
         {isMobileSidebarOpen && (
           <div className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsMobileSidebarOpen(false)}></div>
         )}
 
         {/* Left Sidebar: Saved Trips */}
-        <aside className={`fixed lg:relative top-0 left-0 w-full sm:w-[350px] lg:w-[420px] h-screen glass-panel p-5 lg:p-6 flex flex-col overflow-y-auto shrink-0 border-r border-slate-200/50 shadow-[4px_0_40px_rgba(30,30,90,0.05)] z-50 transition-transform duration-500 custom-scrollbar-light ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <aside className={`fixed lg:relative top-0 left-0 w-full sm:w-[350px] lg:w-[420px] h-screen bg-white p-5 lg:p-6 flex flex-col overflow-y-auto shrink-0 border-r border-slate-200 shadow-sm z-50 transition-transform duration-500 custom-scrollbar-light ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
           <div className="flex items-center justify-between mb-5 sticky top-0 bg-white z-30 pb-3 pt-1 border-b border-transparent">
-            <h2 className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-br from-indigo-700 to-purple-600 tracking-tight">Travel History</h2>
+            <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Travel History</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={fetchTrips}
@@ -368,8 +363,8 @@ export default function DashboardPage() {
                 >
                   {selectedTrip?.id === trip.id && <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-indigo-500 to-purple-500"></div>}
                   
-                  {/* Action Buttons (visible on hover) */}
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-20">
+                  {/* Action Buttons (visible always for mobile accessibility) */}
+                  <div className="absolute top-3 right-3 opacity-100 transition-opacity flex gap-1 z-20">
                     <button
                       onClick={(e) => startEdit(trip, e)}
                       className="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-50 bg-white shadow-sm border border-slate-100 transition-colors"

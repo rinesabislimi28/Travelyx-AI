@@ -169,15 +169,10 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#fafcff] relative flex flex-col items-center py-10 px-4 sm:px-6 overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 relative flex flex-col items-center py-10 px-4 sm:px-6 overflow-x-hidden">
         
-        {/* Dynamic Vibrant Header Mesh */}
-        <div className="absolute top-0 left-0 w-full h-[350px] bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 rounded-b-[4rem] shadow-2xl z-0 overflow-hidden border-b border-white/20">
-           <div className="absolute inset-0 opacity-40 mix-blend-color-dodge pointer-events-none">
-              <div className="absolute top-[-20%] left-[-10%] w-[350px] h-[350px] bg-cyan-400 blur-[80px] rounded-full animate-blob"></div>
-              <div className="absolute bottom-[-20%] right-[-10%] w-[350px] h-[350px] bg-pink-400 blur-[80px] rounded-full animate-blob animation-delay-2000"></div>
-           </div>
-        </div>
+        {/* Professional Dark Header */}
+        <div className="absolute top-0 left-0 w-full h-[350px] bg-slate-900 rounded-b-[4rem] shadow-xl z-0"></div>
 
         <div className="w-full max-w-5xl z-10 flex justify-between items-center mb-4 pt-4">
           <Link href="/dashboard" className="text-slate-800 bg-white hover:bg-slate-50 px-5 py-2.5 rounded-full font-bold transition-all flex items-center gap-2 shadow-xl hover:-translate-x-1 hover:shadow-indigo-500/20 text-sm">
