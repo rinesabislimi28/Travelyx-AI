@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { sendTransactionalEmail } from "@/lib/server/transactionalEmail";
 
 export async function POST(req) {
   try {
@@ -24,10 +25,10 @@ export async function POST(req) {
 
     // 3. Initialize Admin Supabase Client using the Service Role Key
     const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
+
     if (!serviceRoleKey) {
-      return NextResponse.json({ 
-        error: "Server configuration error: Service Role Key is missing. Cannot perform account deletion." 
+      return NextResponse.json({
+        error: "Server configuration error: Service Role Key is missing. Cannot perform account deletion."
       }, { status: 500 });
     }
 
@@ -42,6 +43,8 @@ export async function POST(req) {
       }
     );
 
+    const userEmail = user.email;
+
     // 4. Delete the User from Auth (This cascades and deletes from RLS connected tables if configured correctly)
     const { error: deleteError } = await adminSupabase.auth.admin.deleteUser(user.id);
 
@@ -50,8 +53,21 @@ export async function POST(req) {
       return NextResponse.json({ error: "Failed to delete account in database." }, { status: 500 });
     }
 
+    let emailSent = false;
+    if (userEmail) {
+      try {
+        const emailResult = await sendTransactionalEmail({ to: userEmail, type: "account_deleted" });
+        emailSent = emailResult.sent;
+      } catch (emailError) {
+        console.error("Account deletion email failed:", emailError);
+      }
+    }
+
     // 5. Success
-    return NextResponse.json({ success: true, message: "Account explicitly deleted." }, { status: 200 });
+    return NextResponse.json(
+      { success: true, message: "Account explicitly deleted.", emailSent },
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error("Critical server error during account deletion:", error);

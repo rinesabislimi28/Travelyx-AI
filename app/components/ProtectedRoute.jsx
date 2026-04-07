@@ -23,7 +23,14 @@ export default function ProtectedRoute({ children }) {
     checkUser();
   }, [router]);
 
-  if (loading) return <p className="text-center mt-20">Checking authentication...</p>;
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="panel rounded-[2rem] px-8 py-6 text-center">
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Secure access</p>
+        <p className="mt-3 text-lg font-bold text-white">Checking authentication...</p>
+      </div>
+    </div>
+  );
 
   return <>{children}</>;
 }

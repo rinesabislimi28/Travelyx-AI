@@ -1,12 +1,5 @@
-/**
- * SignupPage Component
- * -------------------
- * Provides a highly polished signup form utilizing Supabase Authentication.
- * Includes basic validation (email structure, minimum password length, and name field)
- * and an advanced Email Verification (OTP Code) step.
- */
 "use client";
-import Image from "next/image";
+
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -19,11 +12,8 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // --- OTP Verification State ---
   const [needsVerification, setNeedsVerification] = useState(false);
   const [otp, setOtp] = useState("");
-
   const router = useRouter();
 
   const handleSignUp = async (e) => {
@@ -33,9 +23,10 @@ export default function SignupPage() {
 
     if (!name.trim()) return setError("Please enter your full name.");
     if (!email.includes("@")) return setError("Please enter a valid email address.");
+
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
     if (!passwordRegex.test(password)) {
-      return setError("Password must be at least 6 characters and contain letters, numbers, and a special character.");
+      return setError("Password must be at least 6 characters and include a letter, number, and special character.");
     }
 
     setLoading(true);
@@ -49,20 +40,17 @@ export default function SignupPage() {
 
       if (signUpError) {
         setError(signUpError.message);
-        setLoading(false);
       } else if (data?.session) {
-        // [SMART BYPASS] User turned off "Confirm Email" in Supabase Dashboard!
-        // No email code is required, log them in instantly.
-        setSuccess("Account created successfully! Redirecting...");
-        setTimeout(() => router.push("/login"), 1500);
+        setSuccess("Account created successfully. Redirecting to login...");
+        setTimeout(() => router.push("/login"), 1400);
       } else {
-        // [OTP REQUIRED] User has "Confirm Email" ON in Supabase Dashboard.
         setNeedsVerification(true);
-        setSuccess("Account created! Please check your email inbox (and SPAM) for the verification code.");
-        setLoading(false);
+        setSuccess(`We sent a verification code to ${email}.`);
       }
     } catch (err) {
+      console.error(err);
       setError("An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -72,7 +60,7 @@ export default function SignupPage() {
     setError("");
     setSuccess("");
 
-    if (otp.length < 6) return setError("Please enter the valid verification code.");
+    if (otp.length < 6) return setError("Please enter the verification code.");
 
     setLoading(true);
 
@@ -86,115 +74,102 @@ export default function SignupPage() {
       if (verifyError) {
         setError(verifyError.message);
       } else {
-        setSuccess("Email verified successfully! Redirecting...");
-        setTimeout(() => router.push("/login"), 1500);
+        setSuccess("Email verified successfully. Redirecting to login...");
+        setTimeout(() => router.push("/login"), 1400);
       }
     } catch (err) {
-      setError("An unexpected error occurred verifying the code.");
+      console.error(err);
+      setError("An unexpected error occurred while verifying the code.");
     } finally {
-      if (!success) setLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 font-sans bg-slate-50 overflow-hidden">
-      {/* Professional Dark Header Background */}
-      <div className="absolute top-0 left-0 w-full h-[350px] bg-slate-900 rounded-b-[4rem] shadow-xl z-0"></div>
-
-      {/* Floating Back Button */}
-      <Link href="/" className="absolute top-6 left-6 z-20 text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/10 hover:bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full transition-all border border-white/20 shadow-sm">
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-        Back to Home
-      </Link>
-
-      <div className="relative z-10 bg-white hover-float p-10 rounded-3xl border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-md flex flex-col gap-6 transition-all duration-300">
-
-        {/* Header */}
-        <div className="text-center">
-          {!needsVerification && <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-lg shadow-indigo-500/30 text-white">🚀</div>}
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight mb-2">
-            {needsVerification ? "Verify Email" : "Create Account"}
-          </h1>
-          <p className="text-slate-500 font-medium">
-            {needsVerification ? `We sent a code to ${email}` : "Join Travelyx-AI and start exploring."}
-          </p>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8">
+      <div className="floating-orb two" />
+      <div className="w-full max-w-5xl">
+        <div className="mb-4">
+          <Link href="/" className="top-nav-link">
+            <span aria-hidden="true">←</span>
+            Back to home
+          </Link>
         </div>
-
-        {/* Global Error Display */}
-        {error && (
-          <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded-xl text-sm text-center font-bold mt-2">
-            {error}
+      <div className="panel w-full overflow-hidden rounded-[2rem]">
+        <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="border-b border-white/10 bg-white/5 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+            <div className="mt-10">
+              <span className="eyebrow">Join Travelyx</span>
+              <h1 className="section-title mt-5 text-4xl font-bold text-white sm:text-5xl">
+                Create a cleaner travel planning workspace.
+              </h1>
+              <p className="mt-5 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                Save trips, revisit itineraries, and manage your profile inside a stronger interface built for desktop and phone screens.
+              </p>
+            </div>
           </div>
-        )}
-        {success && (
-          <div className="bg-emerald-50 text-emerald-600 border border-emerald-200 p-4 rounded-xl text-sm text-center font-bold flex-col flex items-center justify-center gap-2 mt-2">
-            {!success.includes("check your email") && (
-              <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+
+          <div className="p-6 sm:p-8">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-400">
+                {needsVerification ? "Email verification" : "Create account"}
+              </p>
+              <h2 className="mt-3 text-3xl font-bold text-white">
+                {needsVerification ? "Verify your code" : "Get started"}
+              </h2>
+            </div>
+
+            {error && <div className="status-error mb-4">{error}</div>}
+            {success && <div className="status-success mb-4">{success}</div>}
+
+            {!needsVerification ? (
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div>
+                  <label className="field-label">Full name</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="field" required />
+                </div>
+                <div>
+                  <label className="field-label">Email address</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" required />
+                </div>
+                <div>
+                  <label className="field-label">Password</label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="field" required />
+                </div>
+                <button type="submit" disabled={loading} className="button-primary mt-2 w-full">
+                  {loading ? "Creating account..." : "Create account"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div>
+                  <label className="field-label">Verification code</label>
+                  <input
+                    type="text"
+                    maxLength={8}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="field text-center text-2xl font-bold tracking-[0.3em]"
+                    required
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="button-primary mt-2 w-full">
+                  {loading ? "Verifying..." : "Verify code"}
+                </button>
+              </form>
             )}
-            {success.includes("check your email") && <span className="text-3xl animate-bounce">📩</span>}
-            <span className="mt-1 text-center">{success}</span>
+
+            {!needsVerification && (
+              <p className="mt-6 text-sm text-slate-300">
+                Already have an account?{" "}
+                <Link href="/login" className="font-bold text-[#ffd166]">
+                  Log in
+                </Link>
+              </p>
+            )}
           </div>
-        )}
-
-        {/* Form Container */}
-        {!needsVerification ? (
-          <form onSubmit={handleSignUp} className="flex flex-col gap-4 mt-2">
-            <div>
-              <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
-              <input
-                type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all placeholder:text-slate-400 placeholder:font-normal"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
-              <input
-                type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all placeholder:text-slate-400 placeholder:font-normal"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1">Password</label>
-              <input
-                type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 font-bold transition-all placeholder:text-slate-400 placeholder:font-normal"
-                required minLength={6}
-              />
-            </div>
-
-            <button type="submit" disabled={loading || success.includes("check your email")} className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-black p-3.5 rounded-xl shadow-md shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm">
-              {loading ? "Creating account..." : "Create Account"}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5 mt-2">
-            <div>
-              <label className="block text-slate-500 text-xs font-black uppercase tracking-widest mb-1.5 ml-1 text-center">Enter Verification Code</label>
-              <input
-                type="text" maxLength={8} placeholder="12345678" value={otp} onChange={(e) => setOtp(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-800 text-center text-3xl font-black tracking-[0.2em] transition-all placeholder:text-slate-300"
-                required
-              />
-            </div>
-            <button type="submit" disabled={loading || !!success.includes("verified")} className="mt-2 w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black p-3.5 rounded-xl shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm">
-              {loading && !success.includes("verified") ? "Verifying..." : "Verify Code"}
-            </button>
-          </form>
-        )}
-
-        {/* Footer Navigation */}
-        {!needsVerification && (
-          <div className="flex flex-col gap-3 mt-1 border-t border-slate-100 pt-5">
-            <p className="text-sm font-medium text-center text-slate-500">
-              Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-500 font-bold transition-colors underline decoration-blue-200 underline-offset-4">
-                Login here
-              </Link>
-            </p>
-          </div>
-        )}
+        </div>
+      </div>
       </div>
     </div>
   );

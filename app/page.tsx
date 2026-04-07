@@ -1,248 +1,184 @@
-/**
- * Landing Page Component (app/page.tsx)
- * ---------------------------------------
- * Serves as the public-facing entry point of Travelyx-AI.
- * Features a modern, fully responsive UI utilizing Tailwind CSS gradients, 
- * glassmorphism effects, and highly optimized layouts for both desktop and mobile.
- */
 import Link from "next/link";
-import Image from "next/image";
+
+const features = [
+  {
+    title: "Plan with city-level prompts",
+    text: "Search with a city, a country, or both. The app is no longer limited to a rigid destination dropdown.",
+  },
+  {
+    title: "Save trips that stay usable",
+    text: "Generated plans remain readable, editable, and easy to revisit from desktop or mobile.",
+  },
+  {
+    title: "Security flows that feel clear",
+    text: "Profile actions, password changes, and account deletion now surface clearer confirmations and notices.",
+  },
+];
+
+const steps = [
+  "Tell Travelyx where you want to leave from and where you want to go.",
+  "Pick the trip style, duration, and budget that fits your plan.",
+  "Get a complete itinerary with daily structure, costs, and a saved trip history.",
+];
+
+const footerLinks = [
+  { href: "/login", label: "Log in" },
+  { href: "/signup", label: "Create account" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/cookies", label: "Cookies" },
+];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-blue-500/30 font-sans overflow-x-hidden relative">
+    <div className="min-h-screen pb-16">
+      <div className="floating-orb one" />
+      <div className="floating-orb two" />
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
-        <div className="flex items-center gap-2 group cursor-pointer max-w-7xl mx-auto w-full justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">
-              Travelyx
-            </span>
+      <nav className="shell flex items-center justify-between pt-5">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-lg font-black text-white shadow-lg shadow-black/20">
+            T
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">
-              Log in
-            </Link>
-            <Link href="/signup" className="text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 px-5 py-2 rounded-full transition-all">
-              Sign up
-            </Link>
+          <div>
+            <p className="display-font text-2xl font-bold tracking-tight text-white">Travelyx</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Travel AI Studio</p>
           </div>
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="button-secondary text-sm">
+            Log in
+          </Link>
+          <Link href="/signup" className="button-primary text-sm">
+            Create account
+          </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold mb-8 shadow-sm">
-           ✨ Llama 3 Powered App
-        </div>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 md:mb-8 leading-tight text-slate-900 px-2">
-          Your Personal  <br className="hidden md:block"/>
-          <span className="text-blue-600">
-            AI Travel Agent
-          </span>
-        </h1>
-        <p className="text-lg md:text-xl text-slate-600 max-w-2xl mb-12 font-medium">
-          Tell us your budget and travel style. In just 5 seconds, our AI will generate a complete Day 1 to Day 7 itinerary with activities, simulated costs, and local tips mapped out for you.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-4 relative z-20">
-          <Link href="/login" className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg shadow-lg shadow-blue-600/30 hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 group">
-            Start Planning For Free
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
-        </div>
-
-        {/* Hero Visual Mockup */}
-        <div className="mt-20 relative w-full max-w-5xl rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 group">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10 h-full w-full pointer-events-none"></div>
-          
-          <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] relative">
-            <Image 
-              src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80" 
-              alt="Travel Planning Mockup" 
-              fill
-              priority
-              className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-1000"
-            />
-          </div>
-          
-          {/* Overlay UI Badge */}
-          <div className="absolute bottom-8 left-8 right-8 z-20 flex justify-between items-end">
-             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl hidden sm:block">
-               <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                 </div>
-                 <div>
-                   <p className="text-white font-bold text-sm">Trip to Japan Generated</p>
-                   <p className="text-slate-300 text-xs">7 Days • $2,500 Budget</p>
-                 </div>
-               </div>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-slate-200/60">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-extrabold mb-4 text-slate-900">How it Works</h2>
-          <p className="text-slate-500 text-lg font-medium">Your personal AI travel agent gets it done in 3 simple steps.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-          {/* Connecting Line */}
-          <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-          
-          {/* Step 1 */}
-          <div className="flex flex-col items-center text-center relative z-10 group">
-            <div className="w-24 h-24 rounded-full bg-white border-2 border-blue-100 flex items-center justify-center text-3xl mb-6 shadow-xl shadow-blue-500/10 text-blue-600 font-black group-hover:scale-110 group-hover:border-blue-400 transition-all duration-300">1</div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Tell us your goal</h3>
-            <p className="text-slate-500">Enter your budget, desired duration, and travel style (e.g., adventure, cultural).</p>
-          </div>
-          
-          {/* Step 2 */}
-          <div className="flex flex-col items-center text-center relative z-10 group">
-            <div className="w-24 h-24 rounded-full bg-white border-2 border-sky-100 flex items-center justify-center text-3xl mb-6 shadow-xl shadow-sky-500/10 text-sky-600 font-black group-hover:scale-110 group-hover:border-sky-400 transition-all duration-300">2</div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">AI creates the plan</h3>
-            <p className="text-slate-500">Our Llama 3 AI builds a complete day-by-day intelligent itinerary in seconds.</p>
-          </div>
-          
-          {/* Step 3 */}
-          <div className="flex flex-col items-center text-center relative z-10 group">
-            <div className="w-24 h-24 rounded-full bg-white border-2 border-amber-100 flex items-center justify-center text-3xl mb-6 shadow-xl shadow-amber-500/10 text-amber-500 font-black group-hover:scale-110 group-hover:border-amber-400 transition-all duration-300">3</div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Review & Export</h3>
-            <p className="text-slate-500">Check your daily activities, view simulated costs, and cleanly export to a PDF document!</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="relative z-10 bg-slate-100/50 border-t border-slate-200 py-24 px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-4 text-slate-900">Why use Travelyx-AI?</h2>
-            <p className="text-slate-500 text-lg font-medium">Everything you need to orchestrate the perfect journey.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Feature 1 */}
-            <div className="group bg-white hover-float rounded-[2rem] p-8 border border-slate-200 relative overflow-hidden transition-all duration-300 hover:border-blue-400 shadow-sm">
-              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-blue-100">
-                <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Lightning Fast</h3>
-              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
-                Generate full 7-day itineraries categorized by morning, afternoon, and evening in just seconds powered by AI.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="group bg-white hover-float rounded-[2rem] p-8 border border-slate-200 relative overflow-hidden transition-all duration-300 hover:border-blue-400 shadow-sm">
-              <div className="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-sky-100">
-                <svg className="w-7 h-7 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Smart Budgeting</h3>
-              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
-                Receive instant simulated estimations for flights, hotels, and daily activities to fit your wallet perfectly.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group bg-white hover-float rounded-[2rem] p-8 border border-slate-200 relative overflow-hidden transition-all duration-300 hover:border-blue-400 shadow-sm">
-              <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-amber-100">
-                <svg className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3 relative z-10">Export & Go</h3>
-              <p className="text-slate-500 leading-relaxed font-medium relative z-10">
-                Save your trips automatically to your account or beautifully export them to share with friends and family.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="relative z-10 border-t border-slate-200 bg-gradient-to-b from-slate-50 to-blue-50/30 py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 drop-shadow-sm">Ready to let AI guide your next adventure?</h2>
-          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto font-medium">Join thousands of travelers who are saving hours of research by letting our intelligent algorithms do the heavy lifting.</p>
-          <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-black transition-all hover:-translate-y-1 shadow-2xl shadow-slate-900/20 group">
-            Create Your Free Account
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-          </Link>
-        </div>
-      </section>
-
-      {/* Modern Footer */}
-      <footer className="relative z-10 bg-slate-50 border-t border-slate-200 pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            
-            {/* Brand Column */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-600/20">
-                  <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                </div>
-                <span className="text-xl font-extrabold text-slate-800">Travelyx</span>
-              </div>
-              <p className="text-slate-500 text-sm max-w-sm leading-relaxed font-medium">
-                The next generation of travel planning. Built for modern explorers and forward-thinking travel communities.
-              </p>
-            </div>
-            
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-slate-800 font-extrabold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-500 font-semibold">
-                <li><Link href="#features" className="hover:text-blue-600 transition-colors">Features</Link></li>
-                <li><Link href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link></li>
-                <li><Link href="/login" className="hover:text-blue-600 transition-colors">Log In</Link></li>
-              </ul>
-            </div>
-            
-            {/* Legal Links */}
-            <div>
-              <h4 className="text-slate-800 font-extrabold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-500 font-semibold">
-                <li><Link href="/privacy" className="hover:text-blue-600 transition-colors cursor-pointer">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-blue-600 transition-colors cursor-pointer">Terms of Service</Link></li>
-                <li><Link href="/cookies" className="hover:text-blue-600 transition-colors cursor-pointer">Cookie Policy</Link></li>
-              </ul>
-            </div>
-            
-          </div>
-          
-          <div className="border-t border-slate-200/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-400 font-medium text-sm">
-              © {new Date().getFullYear()} Travelyx-AI. All rights reserved.
+      <main className="shell pt-10 md:pt-16">
+        <section className="hero-grid items-stretch">
+          <div className="col-span-12 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/8 to-white/3 p-6 sm:p-8 lg:col-span-7 lg:p-10">
+            <span className="eyebrow mb-6">Creative travel planning</span>
+            <h1 className="section-title text-balance text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-7xl">
+              A travel planner that finally feels premium.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+              Travelyx helps users plan city breaks and full destination trips with a stronger interface, clearer search, and AI-generated itineraries that still feel practical.
             </p>
-            <div className="flex items-center gap-4 text-slate-400">
-              {/* Dummy Social Icons */}
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:text-blue-600 hover:border-blue-300 transition-all cursor-pointer shadow-sm">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/signup" className="button-primary">
+                Start planning
+              </Link>
+              <Link href="/login" className="button-secondary">
+                Open dashboard
+              </Link>
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <div className="panel-soft rounded-[1.5rem] p-4">
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Search</p>
+                <p className="mt-2 text-xl font-bold text-white sm:text-2xl">City + Country</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:text-blue-600 hover:border-blue-300 transition-all cursor-pointer shadow-sm">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              <div className="panel-soft rounded-[1.5rem] p-4">
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Output</p>
+                <p className="mt-2 text-xl font-bold text-white sm:text-2xl">1 to 14 days</p>
+              </div>
+              <div className="panel-soft rounded-[1.5rem] p-4">
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Style</p>
+                <p className="mt-2 text-xl font-bold text-white sm:text-2xl">Responsive UI</p>
               </div>
             </div>
+          </div>
+
+          <div className="col-span-12 flex flex-col gap-4 lg:col-span-5">
+            <div className="panel rounded-[2rem] p-6">
+              <p className="text-sm uppercase tracking-[0.24em] text-[#ffd166]">What changed</p>
+              <div className="mt-6 space-y-4">
+                {features.map((feature) => (
+                  <div key={feature.title} className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+                    <h2 className="text-lg font-bold text-white">{feature.title}</h2>
+                    <p className="mt-2 text-sm leading-7 text-slate-300">{feature.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="panel-soft rounded-[2rem] p-6">
+              <p className="text-sm uppercase tracking-[0.24em] text-[#35c6b3]">Designed for real use</p>
+              <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-5">
+                <p className="text-2xl font-bold text-white">Modern landing, cleaner auth, stronger dashboard.</p>
+                <p className="mt-3 text-sm leading-7 text-slate-300">
+                  The new visual system uses layered gradients, sharper cards, better spacing, and a stronger mobile layout across the app.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="panel rounded-[2rem] p-6 sm:p-8">
+            <span className="eyebrow mb-4">How it works</span>
+            <div className="space-y-4">
+              {steps.map((step, index) => (
+                <div key={step} className="flex gap-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 font-bold text-white">
+                    {index + 1}
+                  </div>
+                  <p className="text-sm leading-7 text-slate-300 sm:text-base">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="panel-soft rounded-[2rem] p-6 sm:p-8">
+            <span className="eyebrow mb-4">Why users stay</span>
+            <p className="section-title text-3xl font-bold text-white sm:text-4xl">
+              Better planning starts with a better feeling interface.
+            </p>
+            <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
+              The app now looks more intentional, reads better on mobile, and supports free-form destination input so users can actually search the way they think.
+            </p>
+            <Link href="/signup" className="button-primary mt-8">
+              Build your next trip
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <footer className="shell mt-14 border-t border-white/10 pt-6">
+        <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-white/6 to-white/3 px-5 py-6 sm:px-6">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr_0.8fr]">
+            <div>
+              <p className="display-font text-xl font-bold text-white">Travelyx</p>
+              <p className="mt-2 max-w-md text-sm leading-7 text-slate-400">
+                AI travel planning for modern city breaks and destination journeys, designed to feel clean, fast, and practical.
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Product</p>
+              <div className="mt-3 flex flex-col gap-2 text-sm text-slate-300">
+                <span>City or country search</span>
+                <span>AI itinerary generation</span>
+                <span>Saved trip history</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Links</p>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-300">
+                {footerLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className="hover:text-white">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {new Date().getFullYear()} Travelyx. All rights reserved.</p>
+            <p>Built for responsive travel planning across phone, tablet, and laptop.</p>
           </div>
         </div>
       </footer>

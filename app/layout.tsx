@@ -1,39 +1,32 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-
-// IMPORT AUTH PROVIDER
 import { AuthProvider } from "./context/AuthContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Travelyx-AI",
-  description: "AI Travel Planner",
+  description: "AI travel planner for modern city breaks and destination journeys.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        
-        {/* 🔥 VERY IMPORTANT */}
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-
+      <body className={`${jakarta.variable} ${spaceGrotesk.variable} app-body antialiased`}>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
