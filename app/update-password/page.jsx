@@ -57,6 +57,10 @@ export default function UpdatePasswordPage() {
     setError("");
     setMessage("");
 
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+      return setError("Please fill in both password fields.");
+    }
+
     if (newPassword.length < 6) return setError("Password must be at least 6 characters.");
     if (newPassword !== confirmPassword) return setError("Passwords do not match.");
 
@@ -119,11 +123,11 @@ export default function UpdatePasswordPage() {
             <>
               <div>
                 <label className="field-label">New password</label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="field" required />
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="field" />
               </div>
               <div>
                 <label className="field-label">Confirm password</label>
-                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="field" required />
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="field" />
               </div>
               <button type="submit" disabled={loading} className="button-primary">
                 {loading ? "Saving..." : "Update password"}

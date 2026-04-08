@@ -14,6 +14,31 @@ const inspirationCards = [
   { destination: "Tokyo, Japan", style: "Cultural", budget: "2000", note: "Food, neighborhoods, and modern city culture." },
 ];
 
+const searchableLocationTerms = new Set(
+  normalizedLocations.flatMap((location) => {
+    const parts = location
+      .split(",")
+      .map((part) => part.trim().toLowerCase())
+      .filter(Boolean);
+
+    return [location.toLowerCase(), ...parts];
+  })
+);
+
+function isValidLocationInput(value) {
+  const normalizedValue = value.trim().toLowerCase();
+
+  if (!normalizedValue || normalizedValue.length < 2 || normalizedValue.length > 60) {
+    return false;
+  }
+
+  if (!/^[a-zA-Z\s,'-]+$/.test(value.trim())) {
+    return false;
+  }
+
+  return searchableLocationTerms.has(normalizedValue);
+}
+
 function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent, remaining }) {
   return (
     <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/30 p-5 sm:p-6">
@@ -124,14 +149,19 @@ export default function AIForm({ onTripGenerated = () => {} }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (loading) return;
+
     const departure = formData.departure.trim();
     const destination = formData.destination.trim();
 
     if (!departure) return setError("Please enter a departure city or country.");
     if (!destination) return setError("Please enter a destination city or country.");
+    if (!isValidLocationInput(departure)) return setError("Please enter a real departure city or country from the suggestions.");
+    if (!isValidLocationInput(destination)) return setError("Please enter a real destination city or country from the suggestions.");
     if (departure.toLowerCase() === destination.toLowerCase()) return setError("Departure and destination cannot be the same.");
     if (!formData.budget) return setError("Please enter a budget.");
     if (isNaN(formData.budget) || Number(formData.budget) < 1) return setError("Budget must be a valid positive number.");
+    if (!navigator.onLine) return setError("Network error. Please check your connection and try again.");
 
     const prompt = `Create a detailed ${formData.duration}-day ${formData.travelStyle} itinerary departing from ${departure} and traveling to ${destination} with a budget of ${formData.budget} euros. The departure or destination may be a city, a country, or a city with country. Make sure the total JSON output covers exactly ${formData.duration} days and keeps the trip realistic.`;
     const userDisplay = `${departure} to ${destination} | ${formData.duration} days | EUR ${formData.budget} | ${formData.travelStyle}`;
@@ -438,13 +468,17 @@ export default function AIForm({ onTripGenerated = () => {} }) {
             ) : null}
 
             <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-white/10 to-white/4 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
-              <p className="text-sm uppercase tracking-[0.24em] text-[#35c6b3]">Quick inspiration</p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm uppercase tracking-[0.24em] text-[#35c6b3]">Quick inspiration</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Click a card to autofill the planner</p>
+              </div>
               <div className="mt-4 grid gap-3 xl:grid-cols-3">
                 {inspirationCards.map((card) => (
                   <button
                     key={card.destination}
                     type="button"
                     onClick={() => handleInspirationClick(card.destination, card.style, card.budget)}
+                    title="Click to autofill the planner"
                     className="w-full rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-slate-950/45 to-[#12213a]/70 p-4 text-left hover:border-[#ff7a59]/40 hover:bg-[#12213a]/90"
                   >
                     <p className="text-lg font-bold text-white">{card.destination}</p>

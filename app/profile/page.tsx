@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [deleteAccountText, setDeleteAccountText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmError, setDeleteConfirmError] = useState("");
   const joinedAt = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : "recently";
@@ -83,6 +84,9 @@ export default function ProfilePage() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+      return showFeedback("error", "Please fill in both password fields.");
+    }
     if (newPassword.length < 6) {
       return showFeedback("error", "Password must be at least 6 characters.");
     }
@@ -126,10 +130,17 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteAccountText !== "DELETE") {
-      return showFeedback("error", "Type DELETE in all caps to confirm.");
+    if (!deleteAccountText.trim()) {
+      setDeleteConfirmError("Please type DELETE to confirm account deletion.");
+      return;
     }
 
+    if (deleteAccountText !== "DELETE") {
+      setDeleteConfirmError("Confirmation text must be exactly DELETE in all caps.");
+      return;
+    }
+
+    setDeleteConfirmError("");
     setIsDeleting(true);
 
     try {
@@ -250,7 +261,7 @@ export default function ProfilePage() {
                     </div>
                     <button
                       type="submit"
-                      disabled={isUpdatingPassword || !newPassword || !confirmPassword}
+                      disabled={isUpdatingPassword}
                       className="button-primary"
                     >
                       {isUpdatingPassword ? "Updating..." : "Update password"}
@@ -264,7 +275,14 @@ export default function ProfilePage() {
                   <p className="mt-3 text-sm leading-7 text-slate-200">
                     This permanently removes your account and saved trips. A confirmation email is attempted after deletion when custom email delivery is configured.
                   </p>
-                  <button onClick={() => setShowDeleteModal(true)} className="button-danger mt-5">
+                  <button
+                    onClick={() => {
+                      setDeleteConfirmError("");
+                      setDeleteAccountText("");
+                      setShowDeleteModal(true);
+                    }}
+                    className="button-danger mt-5"
+                  >
                     Delete account
                   </button>
                 </div>
@@ -284,10 +302,26 @@ export default function ProfilePage() {
               </p>
               <div className="mt-5">
                 <label className="field-label">Confirmation text</label>
-                <input value={deleteAccountText} onChange={(e) => setDeleteAccountText(e.target.value)} className="field" placeholder="DELETE" />
+                <input
+                  value={deleteAccountText}
+                  onChange={(e) => {
+                    setDeleteAccountText(e.target.value);
+                    if (deleteConfirmError) setDeleteConfirmError("");
+                  }}
+                  className="field"
+                  placeholder="DELETE"
+                />
               </div>
+              {deleteConfirmError && <div className="status-error mt-4">{deleteConfirmError}</div>}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button onClick={() => setShowDeleteModal(false)} className="button-secondary flex-1">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmError("");
+                    setDeleteAccountText("");
+                  }}
+                  className="button-secondary flex-1"
+                >
                   Cancel
                 </button>
                 <button onClick={handleDeleteAccount} disabled={isDeleting} className="button-danger flex-1">
