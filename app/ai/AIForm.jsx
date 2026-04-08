@@ -292,9 +292,9 @@ export default function AIForm({ onTripGenerated = () => {} }) {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5 lg:h-screen lg:overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5">
       <div className="w-full">
-        <div className="panel w-full overflow-x-hidden rounded-[2rem] p-4 sm:p-5 lg:flex lg:h-[calc(100vh-2.5rem)] lg:flex-col lg:p-6">
+        <div className="panel w-full overflow-x-hidden rounded-[2rem] p-4 sm:p-5 lg:p-6">
           <div className="grid gap-4 border-b border-white/10 pb-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <span className="eyebrow">Trip planner</span>
@@ -319,7 +319,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
             </div>
           </div>
 
-          <div className="mt-6 space-y-6 lg:min-h-0 lg:flex-1">
+          <div className="mt-6 space-y-6">
             <form onSubmit={handleSubmit} className="rounded-[1.8rem] border border-white/10 bg-white/5 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
               <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
                 <div className="min-w-0">
@@ -404,7 +404,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
             </datalist>
 
             {messages.length > 0 || loading ? (
-              <div className="trip-scroll split-scroll overflow-x-hidden overflow-y-auto pr-1 pb-6 lg:min-h-0 lg:flex-1 lg:pb-8">
+              <div className="trip-scroll split-scroll overflow-x-hidden pr-1 pb-6">
                 <div className="space-y-4">
                   {messages.map((msg, i) => (
                     <div
