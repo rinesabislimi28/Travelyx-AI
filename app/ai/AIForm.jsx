@@ -292,7 +292,7 @@ export default function AIForm({ onTripGenerated = () => {} }) {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5">
+    <div className="h-full overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5">
       <div className="w-full">
         <div className="panel w-full overflow-x-hidden rounded-[2rem] p-4 sm:p-5 lg:p-6">
           <div className="grid gap-4 border-b border-white/10 pb-5 lg:grid-cols-[1fr_auto] lg:items-center">
