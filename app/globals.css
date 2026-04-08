@@ -270,6 +270,47 @@ select {
   padding: 1.1rem;
 }
 
+.itinerary-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.itinerary-hero {
+  border-radius: 1.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 122, 89, 0.16), rgba(38, 208, 184, 0.12)),
+    rgba(255, 255, 255, 0.05);
+  padding: 1.35rem;
+}
+
+.day-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.day-block {
+  border-radius: 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+}
+
+.day-block ul {
+  margin-top: 0.85rem;
+}
+
+.day-block li + li {
+  margin-top: 0.55rem;
+}
+
+@media (max-width: 900px) {
+  .day-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .split-scroll {
   overscroll-behavior: contain;
 }

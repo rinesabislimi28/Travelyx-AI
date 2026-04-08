@@ -16,8 +16,13 @@ const inspirationCards = [
 
 function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent, remaining }) {
   return (
-    <div className="mt-8 rounded-[1.6rem] border border-white/10 bg-slate-950/30 p-5 sm:p-6">
-      <p className="text-lg font-bold text-white sm:text-xl">Estimated budget</p>
+    <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/30 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-lg font-bold text-white sm:text-xl">Estimated budget</p>
+        <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-slate-300">
+          Cost overview
+        </span>
+      </div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         <div className="metric-card">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Your budget</p>
@@ -35,7 +40,7 @@ function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent,
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="metric-card">
           <p className="text-slate-400">Flights</p>
           <p className="mt-2 text-xl font-bold text-white">EUR {budget_estimate?.flight ?? 0}</p>
@@ -174,20 +179,32 @@ export default function AIForm({ onTripGenerated = () => {} }) {
         const remaining = userBudgetNumber - totalSpent;
 
         aiContent = (
-          <div className="w-full">
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5 sm:p-6">
-              <p className="text-xs uppercase tracking-[0.24em] text-[#ffd166]">Curated plan</p>
-              <h3 className="mt-3 text-3xl font-bold text-white">
-                {plannedDestination}, {country}
-              </h3>
-              <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{overview}</p>
-              {local_event_or_festival && <div className="status-info mt-4">{local_event_or_festival}</div>}
-              <p className="mt-4 inline-flex rounded-full border border-white/10 bg-slate-950/30 px-4 py-2 text-sm text-slate-300">
+          <div className="itinerary-shell w-full">
+            <div className="itinerary-hero">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-[0.24em] text-[#ffd166]">Curated plan</p>
+                  <h3 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
+                    {plannedDestination}, {country}
+                  </h3>
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200 sm:text-base">{overview}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 lg:max-w-[280px] lg:justify-end">
+                  <span className="rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-sm text-slate-200">
+                    {formData.duration} days
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-sm text-slate-200">
+                    {formData.travelStyle}
+                  </span>
+                </div>
+              </div>
+              {local_event_or_festival && <div className="status-info mt-5">{local_event_or_festival}</div>}
+              <div className="mt-5 inline-flex rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-sm text-slate-300">
                 Best time to visit: <span className="ml-2 font-bold text-white">{best_time_to_visit}</span>
-              </p>
+              </div>
             </div>
 
-            <div className="mt-6 space-y-4">
+            <div className="space-y-4">
               {itinerary.length > 0 ? (
                 itinerary.map((day, idx) => {
                   const dayNum = day.day ?? idx + 1;
@@ -197,33 +214,36 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
                   return (
                     <div key={dayNum} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5 sm:p-6">
-                      <div className="flex items-center justify-between gap-4">
-                        <h4 className="text-xl font-bold text-white">Day {dayNum}</h4>
-                        <span className="rounded-full bg-white/8 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
-                          Daily plan
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Daily itinerary</p>
+                          <h4 className="mt-2 text-2xl font-bold text-white">Day {dayNum}</h4>
+                        </div>
+                        <span className="w-fit rounded-full bg-white/8 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                          Morning to night
                         </span>
                       </div>
 
-                      <div className="mt-4 grid gap-4 md:grid-cols-3">
-                        <div className="rounded-[1.2rem] border border-[#ffd166]/20 bg-[#ffd166]/10 p-4">
+                      <div className="day-grid mt-5">
+                        <div className="day-block bg-[#ffd166]/10 border-[#ffd166]/20">
                           <p className="text-xs uppercase tracking-[0.24em] text-[#ffe3a1]">Morning</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                          <ul className="text-sm leading-7 text-slate-200">
                             {morning.map((act, i) => (
                               <li key={i}>{act}</li>
                             ))}
                           </ul>
                         </div>
-                        <div className="rounded-[1.2rem] border border-[#35c6b3]/20 bg-[#35c6b3]/10 p-4">
+                        <div className="day-block bg-[#35c6b3]/10 border-[#35c6b3]/20">
                           <p className="text-xs uppercase tracking-[0.24em] text-[#9ff0e5]">Afternoon</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                          <ul className="text-sm leading-7 text-slate-200">
                             {afternoon.map((act, i) => (
                               <li key={i}>{act}</li>
                             ))}
                           </ul>
                         </div>
-                        <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/35 p-4">
+                        <div className="day-block border-white/10 bg-slate-950/35">
                           <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Evening</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                          <ul className="text-sm leading-7 text-slate-200">
                             {evening.map((act, i) => (
                               <li key={i}>{act}</li>
                             ))}
@@ -273,8 +293,8 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5 lg:h-screen lg:overflow-hidden">
-      <div className="shell-wide">
-        <div className="panel overflow-x-hidden rounded-[2rem] p-4 sm:p-5 lg:flex lg:h-[calc(100vh-2.5rem)] lg:flex-col lg:p-6">
+      <div className="w-full">
+        <div className="panel w-full overflow-x-hidden rounded-[2rem] p-4 sm:p-5 lg:flex lg:h-[calc(100vh-2.5rem)] lg:flex-col lg:p-6">
           <div className="grid gap-4 border-b border-white/10 pb-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <span className="eyebrow">Trip planner</span>
@@ -299,156 +319,152 @@ export default function AIForm({ onTripGenerated = () => {} }) {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:min-h-0 lg:flex-1 xl:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
-            <div className="min-w-0 lg:flex lg:min-h-0 lg:flex-col">
-              <form onSubmit={handleSubmit} className="rounded-[1.8rem] border border-white/10 bg-white/5 p-4 sm:p-6 shadow-[0_18px_40px_rgba(0,0,0,0.18)]">
-                <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
-                  <div className="min-w-0">
-                    <label className="field-label">Departure city or country</label>
-                    <input
-                      list="travelyx-locations"
-                      value={formData.departure}
-                      onChange={(e) => setFormData({ ...formData, departure: e.target.value })}
-                      placeholder="Prishtina, Kosovo"
-                      className="field"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <label className="field-label">Destination city or country</label>
-                    <input
-                      list="travelyx-locations"
-                      value={formData.destination}
-                      onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                      placeholder="Barcelona, Spain"
-                      className="field"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <label className="field-label">Duration</label>
-                    <select
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      className="field-select min-w-0"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((d) => (
-                        <option key={d} value={d}>
-                          {d} days
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+          <div className="mt-6 space-y-6 lg:min-h-0 lg:flex-1">
+            <form onSubmit={handleSubmit} className="rounded-[1.8rem] border border-white/10 bg-white/5 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
+                <div className="min-w-0">
+                  <label className="field-label">Departure city or country</label>
+                  <input
+                    list="travelyx-locations"
+                    value={formData.departure}
+                    onChange={(e) => setFormData({ ...formData, departure: e.target.value })}
+                    placeholder="Prishtina, Kosovo"
+                    className="field"
+                  />
                 </div>
-
-                <div className="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
-                  <div className="min-w-0">
-                    <label className="field-label">Budget (EUR)</label>
-                    <input
-                      type="number"
-                      value={formData.budget}
-                      onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                      placeholder="800"
-                      className="field"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <label className="field-label">Travel style</label>
-                    <select
-                      value={formData.travelStyle}
-                      onChange={(e) => setFormData({ ...formData, travelStyle: e.target.value })}
-                      className="field-select min-w-0"
-                    >
-                      {travelStyles.map((style) => (
-                        <option key={style} value={style}>
-                          {style}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="hidden 2xl:block" />
+                <div className="min-w-0">
+                  <label className="field-label">Destination city or country</label>
+                  <input
+                    list="travelyx-locations"
+                    value={formData.destination}
+                    onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+                    placeholder="Barcelona, Spain"
+                    className="field"
+                  />
                 </div>
-
-                <p className="mt-4 text-sm text-slate-400">
-                  Tip: you can search like <span className="font-bold text-white">Rome</span>, <span className="font-bold text-white">Italy</span>, or <span className="font-bold text-white">Rome, Italy</span>.
-                </p>
-
-                <button type="submit" disabled={loading} className="button-primary mt-5 w-full sm:w-auto">
-                  {loading ? "Generating itinerary..." : "Plan my trip"}
-                </button>
-              </form>
-
-              {error && <div className="status-error mt-4">{error}</div>}
-
-              <datalist id="travelyx-locations">
-                {normalizedLocations.map((location) => (
-                  <option key={location} value={location} />
-                ))}
-              </datalist>
-
-              {messages.length > 0 || loading ? (
-                <div className="trip-scroll split-scroll mt-6 overflow-y-auto pr-1 pb-6 lg:min-h-0 lg:flex-1 lg:pb-8">
-                  <div className="space-y-4">
-                    {messages.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={`rounded-[1.8rem] border p-4 sm:p-6 ${
-                          msg.role === "user"
-                            ? "border-white/10 bg-slate-950/40 text-white"
-                            : "border-white/10 bg-white/5 text-slate-100"
-                        }`}
-                      >
-                        <p className="mb-3 text-xs uppercase tracking-[0.24em] text-slate-400">
-                          {msg.role === "user" ? "Your request" : "AI itinerary"}
-                        </p>
-                        {typeof msg.content === "object" ? msg.content : <p className="text-base font-medium">{msg.content}</p>}
-                        {msg.isSaved && msg.role === "ai" && (
-                          <div className="status-success mt-6">Trip automatically saved to your history.</div>
-                        )}
-                      </div>
+                <div className="min-w-0">
+                  <label className="field-label">Duration</label>
+                  <select
+                    value={formData.duration}
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    className="field-select min-w-0"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((d) => (
+                      <option key={d} value={d}>
+                        {d} days
+                      </option>
                     ))}
-
-                    {loading && (
-                      <div className="rounded-[1.8rem] border border-white/10 bg-white/5 p-8 text-center">
-                        <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Travelyx is working</p>
-                        <p className="mt-3 text-2xl font-bold text-white">Building your itinerary...</p>
-                        <p className="mt-3 text-sm text-slate-300">Checking routes, cost balance, and daily structure for the requested destination.</p>
-                      </div>
-                    )}
-                    <div ref={responseEndRef} />
-                  </div>
+                  </select>
                 </div>
-              ) : null}
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
+                <div className="min-w-0">
+                  <label className="field-label">Budget (EUR)</label>
+                  <input
+                    type="number"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    placeholder="800"
+                    className="field"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="field-label">Travel style</label>
+                  <select
+                    value={formData.travelStyle}
+                    onChange={(e) => setFormData({ ...formData, travelStyle: e.target.value })}
+                    className="field-select min-w-0"
+                  >
+                    {travelStyles.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="hidden xl:block" />
+              </div>
+
+              <p className="mt-4 text-sm text-slate-400">
+                Tip: you can search like <span className="font-bold text-white">Rome</span>, <span className="font-bold text-white">Italy</span>, or <span className="font-bold text-white">Rome, Italy</span>.
+              </p>
+
+              <button type="submit" disabled={loading} className="button-primary mt-5 w-full sm:w-auto">
+                {loading ? "Generating itinerary..." : "Plan my trip"}
+              </button>
+            </form>
+
+            {error && <div className="status-error">{error}</div>}
+
+            <datalist id="travelyx-locations">
+              {normalizedLocations.map((location) => (
+                <option key={location} value={location} />
+              ))}
+            </datalist>
+
+            {messages.length > 0 || loading ? (
+              <div className="trip-scroll split-scroll overflow-x-hidden overflow-y-auto pr-1 pb-6 lg:min-h-0 lg:flex-1 lg:pb-8">
+                <div className="space-y-4">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-[1.8rem] border p-4 sm:p-6 ${
+                        msg.role === "user"
+                          ? "border-white/10 bg-slate-950/40 text-white"
+                          : "border-white/10 bg-white/5 text-slate-100"
+                      }`}
+                    >
+                      <p className="mb-3 text-xs uppercase tracking-[0.24em] text-slate-400">
+                        {msg.role === "user" ? "Your request" : "AI itinerary"}
+                      </p>
+                      {typeof msg.content === "object" ? msg.content : <p className="text-base font-medium">{msg.content}</p>}
+                      {msg.isSaved && msg.role === "ai" && (
+                        <div className="status-success mt-6">Trip automatically saved to your history.</div>
+                      )}
+                    </div>
+                  ))}
+
+                  {loading && (
+                    <div className="rounded-[1.8rem] border border-white/10 bg-white/5 p-8 text-center">
+                      <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Travelyx is working</p>
+                      <p className="mt-3 text-2xl font-bold text-white">Building your itinerary...</p>
+                      <p className="mt-3 text-sm text-slate-300">Checking routes, cost balance, and daily structure for the requested destination.</p>
+                    </div>
+                  )}
+                  <div ref={responseEndRef} />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-white/10 to-white/4 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
+              <p className="text-sm uppercase tracking-[0.24em] text-[#35c6b3]">Quick inspiration</p>
+              <div className="mt-4 grid gap-3 xl:grid-cols-3">
+                {inspirationCards.map((card) => (
+                  <button
+                    key={card.destination}
+                    type="button"
+                    onClick={() => handleInspirationClick(card.destination, card.style, card.budget)}
+                    className="w-full rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-slate-950/45 to-[#12213a]/70 p-4 text-left hover:border-[#ff7a59]/40 hover:bg-[#12213a]/90"
+                  >
+                    <p className="text-lg font-bold text-white">{card.destination}</p>
+                    <p className="mt-2 text-sm text-slate-300">
+                      {card.style} | EUR {card.budget}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-slate-400">{card.note}</p>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <aside className="min-w-0 space-y-4 lg:flex lg:min-h-0 lg:flex-col">
-              <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-white/10 to-white/4 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
-                <p className="text-sm uppercase tracking-[0.24em] text-[#35c6b3]">Quick inspiration</p>
-                <div className="mt-4 space-y-3">
-                  {inspirationCards.map((card) => (
-                    <button
-                      key={card.destination}
-                      type="button"
-                      onClick={() => handleInspirationClick(card.destination, card.style, card.budget)}
-                      className="w-full rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-slate-950/45 to-[#12213a]/70 p-4 text-left hover:border-[#ff7a59]/40 hover:bg-[#12213a]/90"
-                    >
-                      <p className="text-lg font-bold text-white">{card.destination}</p>
-                      <p className="mt-2 text-sm text-slate-300">
-                        {card.style} | EUR {card.budget}
-                      </p>
-                      <p className="mt-2 text-sm leading-7 text-slate-400">{card.note}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-[#ff7a59]/10 to-[#26d0b8]/10 p-5 sm:p-6">
-                <p className="text-sm uppercase tracking-[0.24em] text-[#ffd166]">What feels better now</p>
-                <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
-                  <li>Free typing for destinations and departure points.</li>
-                  <li>Separated scroll areas between planner results and trip history.</li>
-                  <li>Stronger colors and cleaner hierarchy for phone and laptop screens.</li>
-                </ul>
-              </div>
-            </aside>
+            <div className="rounded-[1.8rem] border border-white/10 bg-gradient-to-br from-[#ff7a59]/10 to-[#26d0b8]/10 p-5 sm:p-6">
+              <p className="text-sm uppercase tracking-[0.24em] text-[#ffd166]">What feels better now</p>
+              <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+                <li>Free typing for destinations and departure points.</li>
+                <li>Separated scroll areas between planner results and trip history.</li>
+                <li>Stronger colors and cleaner hierarchy for phone and laptop screens.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
