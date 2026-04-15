@@ -1,3 +1,10 @@
+/**
+ * AI Trip Planner Form
+ * 
+ * Handles user input constraints, state management, and communication with the local
+ * /api/chat endpoint to retrieve Groq Llama 3 generated itineraries. It also processes
+ * validation checks to ensure destination and departure points exist.
+ */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -190,7 +197,9 @@ export default function AIForm({ onTripGenerated = () => {} }) {
 
       if (typeof aiContent === "object" && aiContent !== null) {
         aiContent.departure = departure;
-        data.result.user_budget = formData.budget;
+        if (data && data.result) {
+          data.result.user_budget = formData.budget;
+        }
         aiContent.user_budget = formData.budget;
 
         const {
@@ -340,8 +349,8 @@ export default function AIForm({ onTripGenerated = () => {} }) {
               <button onClick={handleReset} className="button-secondary text-sm">
                 Reset form
               </button>
-              <Link href="/profile" className="button-secondary text-sm">
-                My profile
+              <Link href="/profile" className="button-secondary text-sm border-[#35c6b3]/30 bg-[#35c6b3]/10 text-[#9ff0e5] font-bold">
+                Settings
               </Link>
               <button onClick={handleLogout} className="button-primary text-sm">
                 Log out

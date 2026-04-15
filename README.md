@@ -54,6 +54,45 @@ Focus: Simplicity, functionality, and real implementation.
 
 ---
 
+## 💻 Local Setup & Installation
+
+To run this project locally, follow these steps:
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd travelyx-ai
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Variables (.env.local):**
+   Create a `.env.local` file in the root of your project and include the following variables required to run the AI engine and the Database.
+   
+   ```env
+   # Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+   # AI Configuration (Groq)
+   GROQ_API_KEY=your_groq_api_key
+
+   # Email Configuration (Resend)
+   RESEND_API_KEY=your_resend_api_key
+   ```
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view your local version.
+
+---
+
 ## 👤 User Roles
 
 ### Travelers

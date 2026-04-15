@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("travelyx_remember_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +36,12 @@ export default function LoginPage() {
       if (authError) {
         setError(authError.message);
         return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem("travelyx_remember_email", email);
+      } else {
+        localStorage.removeItem("travelyx_remember_email");
       }
 
       router.push("/dashboard");
@@ -93,6 +108,19 @@ export default function LoginPage() {
                   className="field"
                   required
                 />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 appearance-none rounded border border-white/20 bg-white/5 checked:bg-[#35c6b3] checked:border-[#35c6b3] focus:ring-1 focus:ring-[#35c6b3] focus:outline-none cursor-pointer transition-colors relative after:content-[''] checked:after:absolute checked:after:left-[5px] checked:after:top-[2px] checked:after:w-[5px] checked:after:h-[9px] checked:after:border-r-2 checked:after:border-b-2 checked:after:border-slate-900 checked:after:rotate-45"
+                />
+                <label htmlFor="rememberMe" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
+                  Remember my email
+                </label>
               </div>
 
               <button type="submit" disabled={loading} className="button-primary mt-3 w-full">

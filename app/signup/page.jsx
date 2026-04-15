@@ -126,15 +126,15 @@ export default function SignupPage() {
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
                   <label className="field-label">Full name</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="field" required />
+                  <input type="text" placeholder="Gjoni Doe" value={name} onChange={(e) => setName(e.target.value)} className="field" required />
                 </div>
                 <div>
                   <label className="field-label">Email address</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" required />
+                  <input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="field" required />
                 </div>
                 <div>
                   <label className="field-label">Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="field" required />
+                  <input type="password" placeholder="Min 6 characters, numbers & symbols" value={password} onChange={(e) => setPassword(e.target.value)} className="field" required />
                 </div>
                 <button type="submit" disabled={loading} className="button-primary mt-2 w-full">
                   {loading ? "Creating account..." : "Create account"}
@@ -147,6 +147,7 @@ export default function SignupPage() {
                   <input
                     type="text"
                     maxLength={8}
+                    placeholder="123456"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     className="field text-center text-2xl font-bold tracking-[0.3em]"

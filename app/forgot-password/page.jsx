@@ -73,13 +73,16 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="panel w-full max-w-3xl rounded-[2rem] p-6 sm:p-8">
-        <Link href="/login" className="button-secondary text-sm">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-3xl mb-5">
+        <Link href="/login" className="top-nav-link">
+          <span aria-hidden="true">←</span>
           Back to login
         </Link>
+      </div>
 
-        <div className="mt-8 max-w-2xl">
+      <div className="panel w-full max-w-3xl rounded-[2rem] p-6 sm:p-8">
+        <div className="max-w-2xl">
           <span className="eyebrow">Password recovery</span>
           <h1 className="section-title mt-5 text-4xl font-bold text-white">
             Reset your password without losing the flow.
@@ -87,6 +90,11 @@ export default function ForgotPasswordPage() {
           <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
             Enter your email, confirm the recovery code, then set a new password. If custom email notifications are configured, the app also sends a password-changed notice after the reset is completed.
           </p>
+          <div className="mt-4 inline-block rounded-xl border border-[#35c6b3]/30 bg-[#35c6b3]/10 px-4 py-3">
+            <p className="text-sm font-bold text-[#35c6b3]">
+              ℹ️ Note: The password reset will be strictly performed for the exact email address you enter below.
+            </p>
+          </div>
         </div>
 
         {error && <div className="status-error mt-6">{error}</div>}
@@ -96,7 +104,7 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleResetPassword} className="mt-6 max-w-xl space-y-4">
             <div>
               <label className="field-label">Account email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" required />
+              <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="field" required />
             </div>
             <button type="submit" disabled={loading} className="button-primary">
               {loading ? "Sending code..." : "Send recovery code"}
@@ -109,6 +117,7 @@ export default function ForgotPasswordPage() {
               <input
                 type="text"
                 maxLength={6}
+                placeholder="123456"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 className="field text-center text-2xl font-bold tracking-[0.3em]"

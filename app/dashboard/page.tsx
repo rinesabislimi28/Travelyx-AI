@@ -1,22 +1,29 @@
 "use client";
-
+/**
+ * Dashboard Page
+ * 
+ * The core premium dashboard for authenticated users. It manages saved trips and displays the
+ * AI form generator interface. Serves as the primary parent component for managing user
+ * travel states and rendering the mobile-friendly sidebar.
+ */
 import { useEffect, useState } from "react";
 import AIForm from "../ai/AIForm";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { supabase } from "../../lib/supabaseClient";
+import TripView from "./TripView";
 
-type ItineraryDay = {
+export type ItineraryDay = {
   day?: number;
   morning?: string[];
   afternoon?: string[];
   evening?: string[];
 };
 
-type TripBudgetEstimate = {
+export type TripBudgetEstimate = {
   total_trip_cost?: number;
 };
 
-type TripItineraryData = {
+export type TripItineraryData = {
   destination?: string;
   country?: string;
   overview?: string;
@@ -28,7 +35,7 @@ type TripItineraryData = {
   departure?: string;
 };
 
-type TripRecord = {
+export type TripRecord = {
   id: string;
   destination: string;
   budget: string | number;
@@ -46,6 +53,7 @@ export default function DashboardPage() {
   const [editDestination, setEditDestination] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchTrips = async () => {
     setLoading(true);
@@ -85,6 +93,7 @@ export default function DashboardPage() {
   const confirmDelete = async () => {
     if (!tripToDelete) return;
 
+    setIsDeleting(true);
     try {
       const { error } = await supabase.from("trips").delete().eq("id", tripToDelete);
       if (error) throw error;
@@ -102,6 +111,7 @@ export default function DashboardPage() {
       const message = err instanceof Error ? err.message : "Unknown error";
       alert("Failed to delete trip: " + message);
     } finally {
+      setIsDeleting(false);
       setTripToDelete(null);
     }
   };
@@ -134,123 +144,11 @@ export default function DashboardPage() {
   const displayedTrips = activeTab === "favorites" ? trips.filter((trip) => favorites[trip.id]) : trips;
   const selectedTripId = selectedTrip?.id ?? null;
 
-  const renderTripView = () => {
-    if (!selectedTrip || !selectedTrip.itinerary_data) return null;
-
-    const {
-      destination = "Unknown",
-      country = "Unknown",
-      overview = "No overview provided.",
-      local_event_or_festival,
-      best_time_to_visit = "N/A",
-      itinerary = [],
-      budget_estimate = {},
-      user_budget = null,
-      departure = "",
-    } = selectedTrip.itinerary_data;
-
-    const userBudgetNumber = Number(user_budget) || Number(selectedTrip.budget) || Number(budget_estimate?.total_trip_cost) || 0;
-    const totalSpent = Number(budget_estimate?.total_trip_cost) || 0;
-    const remaining = userBudgetNumber - totalSpent;
-
-    return (
-      <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-5">
-        <div className="shell">
-          <div className="panel rounded-[2rem] p-5 sm:p-6 lg:p-8">
-            <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.24em] text-[#ffd166]">Saved itinerary</p>
-                <h2 className="section-title mt-3 text-3xl font-bold text-white sm:text-4xl">
-                  {destination}, {country}
-                </h2>
-                {departure && <p className="mt-3 text-sm text-slate-400">Departure: {departure}</p>}
-              </div>
-              <button onClick={() => setSelectedTrip(null)} className="button-secondary">
-                Back to planner
-              </button>
-            </div>
-
-            <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/5 p-5 sm:p-6">
-              <p className="text-sm leading-7 text-slate-300 sm:text-base">{overview}</p>
-              {local_event_or_festival && <div className="status-info mt-4">{local_event_or_festival}</div>}
-              <p className="mt-4 inline-flex rounded-full border border-white/10 bg-slate-950/30 px-4 py-2 text-sm text-slate-300">
-                Best time to visit: <span className="ml-2 font-bold text-white">{best_time_to_visit}</span>
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              {itinerary.length > 0 ? (
-                itinerary.map((day: ItineraryDay, idx: number) => {
-                  const dayNum = day.day ?? idx + 1;
-                  const morning = day.morning ?? ["Free time"];
-                  const afternoon = day.afternoon ?? ["Free time"];
-                  const evening = day.evening ?? ["Free time"];
-
-                  return (
-                    <div key={dayNum} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5 sm:p-6">
-                      <h3 className="text-xl font-bold text-white">Day {dayNum}</h3>
-                      <div className="mt-4 grid gap-4 md:grid-cols-3">
-                        <div className="rounded-[1.2rem] border border-[#ffd166]/20 bg-[#ffd166]/10 p-4">
-                          <p className="text-xs uppercase tracking-[0.24em] text-[#ffe3a1]">Morning</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                            {morning.map((item: string, i: number) => (
-                              <li key={i}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="rounded-[1.2rem] border border-[#35c6b3]/20 bg-[#35c6b3]/10 p-4">
-                          <p className="text-xs uppercase tracking-[0.24em] text-[#9ff0e5]">Afternoon</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                            {afternoon.map((item: string, i: number) => (
-                              <li key={i}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/35 p-4">
-                          <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Evening</p>
-                          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                            {evening.map((item: string, i: number) => (
-                              <li key={i}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="status-info">No itinerary available.</div>
-              )}
-            </div>
-
-            <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-slate-950/30 p-5 sm:p-6">
-              <p className="text-xl font-bold text-white">Budget overview</p>
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
-                <div className="metric-card">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Your budget</p>
-                  <p className="mt-2 text-3xl font-bold text-[#ffd166]">EUR {userBudgetNumber}</p>
-                </div>
-                <div className="metric-card">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Estimated cost</p>
-                  <p className="mt-2 text-3xl font-bold text-white">EUR {totalSpent}</p>
-                </div>
-                <div className={`metric-card ${remaining >= 0 ? "border-emerald-400/20 bg-emerald-400/10" : "border-red-400/20 bg-red-400/10"}`}>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Remaining</p>
-                  <p className={`mt-2 text-3xl font-bold ${remaining >= 0 ? "text-[#35c6b3]" : "text-rose-300"}`}>EUR {remaining}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <ProtectedRoute>
       <div className={selectedTrip ? "min-h-screen overflow-x-hidden" : "min-h-screen overflow-x-hidden lg:h-screen lg:overflow-hidden"}>
         {selectedTrip ? (
-          renderTripView()
+          <TripView selectedTrip={selectedTrip} onClose={() => setSelectedTrip(null)} />
         ) : (
           <div className="flex min-h-screen flex-col overflow-x-hidden lg:h-screen lg:flex-row lg:overflow-hidden">
             {isMobileSidebarOpen && (
@@ -386,7 +284,7 @@ export default function DashboardPage() {
               </div>
             </aside>
 
-            <main className="min-w-0 flex-1 overflow-x-hidden lg:h-screen lg:overflow-hidden">
+            <main className="min-w-0 flex-1 overflow-x-hidden lg:h-screen lg:overflow-y-auto trip-scroll">
               <div className="lg:hidden px-3 pt-3">
                 <button type="button" onClick={() => setIsMobileSidebarOpen(true)} className="button-secondary w-full justify-center border-white/20 bg-white/10">
                   Open saved trips
@@ -399,7 +297,7 @@ export default function DashboardPage() {
 
         {tripToDelete && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setTripToDelete(null)} />
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => !isDeleting && setTripToDelete(null)} />
             <div className="panel relative w-full max-w-md rounded-[2rem] p-6">
               <p className="text-sm uppercase tracking-[0.24em] text-rose-300">Delete trip</p>
               <h3 className="mt-3 text-2xl font-bold text-white">Are you sure?</h3>
@@ -407,11 +305,11 @@ export default function DashboardPage() {
                 This will permanently remove the selected itinerary from your saved trips.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button onClick={() => setTripToDelete(null)} className="button-secondary flex-1">
+                <button onClick={() => setTripToDelete(null)} disabled={isDeleting} className="button-secondary flex-1">
                   Cancel
                 </button>
-                <button onClick={confirmDelete} className="button-danger flex-1">
-                  Delete trip
+                <button onClick={confirmDelete} disabled={isDeleting} className="button-danger flex-1">
+                  {isDeleting ? "Deleting..." : "Delete trip"}
                 </button>
               </div>
             </div>

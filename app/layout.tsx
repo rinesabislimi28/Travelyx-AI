@@ -1,3 +1,10 @@
+/**
+ * Top-level application layout.
+ * 
+ * Applies global CSS, configures required Google Fonts (Jakarta Sans & Space Grotesk),
+ * sets up Next.js Metadata, and wraps the application inside the AuthProvider context
+ * for secure session handling across all nested pages.
+ */
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";

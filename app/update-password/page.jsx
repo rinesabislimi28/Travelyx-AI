@@ -81,9 +81,14 @@ export default function UpdatePasswordPage() {
 
       let notificationText = "";
       try {
+        const sessionRes = await supabase.auth.getSession();
+        const token = sessionRes.data.session?.access_token;
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         const notifyResponse = await fetch("/api/notifications", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ type: "password_changed" }),
         });
 

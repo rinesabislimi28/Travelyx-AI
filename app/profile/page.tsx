@@ -110,9 +110,14 @@ export default function ProfilePage() {
 
     let emailNotice = " If email notifications are configured, a confirmation email will also be sent.";
     try {
+      const sessionRes = await supabase.auth.getSession();
+      const token = sessionRes.data.session?.access_token;
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const notifyResponse = await fetch("/api/notifications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ type: "password_changed" }),
       });
 
@@ -198,7 +203,7 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Account settings</p>
-                <h1 className="section-title mt-3 text-3xl font-bold text-white sm:text-4xl">My profile</h1>
+                <h1 className="section-title mt-3 text-3xl font-bold text-white sm:text-4xl">Settings</h1>
               </div>
               <div className="hidden sm:block" />
             </div>
@@ -227,7 +232,7 @@ export default function ProfilePage() {
                   <form onSubmit={handleUpdateName} className="mt-5 space-y-4">
                     <div>
                       <label className="field-label">Full name</label>
-                      <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="field" />
+                      <input type="text" placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} className="field" />
                     </div>
                     <div>
                       <label className="field-label">Email address</label>
@@ -242,6 +247,24 @@ export default function ProfilePage() {
                     </button>
                   </form>
                 </div>
+
+                <div className="rounded-[1.8rem] border border-[#35c6b3]/20 bg-[#35c6b3]/10 p-5 sm:p-6 shadow-[0_0_20px_rgba(53,198,179,0.05)]">
+                  <h3 className="text-xl font-bold text-[#9ff0e5]">Legal & Policies</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-300">
+                    Review our terms of service, privacy policy, and cookie guidelines governing the use of Travelyx.
+                  </p>
+                  <div className="mt-5 flex flex-col gap-3">
+                    <Link href="/privacy" className="button-secondary text-sm justify-between">
+                      <span>Privacy Policy</span> <span aria-hidden="true">→</span>
+                    </Link>
+                    <Link href="/terms" className="button-secondary text-sm justify-between">
+                      <span>Terms of Service</span> <span aria-hidden="true">→</span>
+                    </Link>
+                    <Link href="/cookies" className="button-secondary text-sm justify-between">
+                      <span>Cookie Policy</span> <span aria-hidden="true">→</span>
+                    </Link>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-5">
@@ -253,11 +276,11 @@ export default function ProfilePage() {
                   <form onSubmit={handleUpdatePassword} className="mt-5 space-y-4">
                     <div>
                       <label className="field-label">New password</label>
-                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="field" />
+                      <input type="password" placeholder="Enter your new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="field" />
                     </div>
                     <div>
                       <label className="field-label">Confirm password</label>
-                      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="field" />
+                      <input type="password" placeholder="Enter 6+ characters" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="field" />
                     </div>
                     <button
                       type="submit"
