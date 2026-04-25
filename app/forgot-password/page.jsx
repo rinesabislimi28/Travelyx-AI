@@ -84,10 +84,10 @@ export default function ForgotPasswordPage() {
       <div className="panel w-full max-w-3xl rounded-[2rem] p-6 sm:p-8">
         <div className="max-w-2xl">
           <span className="eyebrow">Password recovery</span>
-          <h1 className="section-title mt-5 text-4xl font-bold text-white">
+          <h1 className="section-title mt-5 text-4xl font-bold text-[var(--foreground)]">
             Reset your password without losing the flow.
           </h1>
-          <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
+          <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-base">
             Enter your email, confirm the recovery code, then set a new password. If custom email notifications are configured, the app also sends a password-changed notice after the reset is completed.
           </p>
           <div className="mt-4 inline-block rounded-xl border border-[#35c6b3]/30 bg-[#35c6b3]/10 px-4 py-3">

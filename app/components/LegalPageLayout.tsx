@@ -34,14 +34,14 @@ export default function LegalPageLayout({
         <div className="panel rounded-[2rem] p-6 sm:p-8 lg:p-10">
           <div className="max-w-3xl">
             <p className="eyebrow">Legal</p>
-            <h1 className="section-title mt-5 text-4xl font-bold text-white sm:text-5xl">{title}</h1>
-            <p className="mt-4 inline-flex rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-bold uppercase tracking-[0.24em] text-slate-300">
+            <h1 className="section-title mt-5 text-4xl font-bold text-[var(--foreground)] sm:text-5xl">{title}</h1>
+            <p className="mt-4 inline-flex rounded-full border border-[var(--line)] bg-white/6 px-4 py-2 text-sm font-bold uppercase tracking-[0.24em] text-[var(--muted)]">
               Last updated: {lastUpdated}
             </p>
           </div>
 
-          <div className="mt-8 rounded-[1.8rem] border border-white/10 bg-white/5 p-5 sm:p-6 lg:p-8">
-            <div className="space-y-6 text-sm font-medium leading-8 text-slate-300 sm:text-base">{children}</div>
+          <div className="mt-8 rounded-[1.8rem] border border-[var(--line)] bg-[var(--card)] p-5 sm:p-6 lg:p-8">
+            <div className="space-y-6 text-sm font-medium leading-8 text-[var(--muted)] sm:text-base">{children}</div>
           </div>
         </div>
       </div>

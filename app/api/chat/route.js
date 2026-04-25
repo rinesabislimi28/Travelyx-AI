@@ -22,8 +22,8 @@ export async function POST(req) {
       {
         cookies: {
           get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
+          set: () => { },
+          remove: () => { },
         },
       }
     );
@@ -65,7 +65,7 @@ export async function POST(req) {
   } catch (err) {
     // Log any unexpected server-side errors for debugging and maintainability
     console.error(err);
-    
+
     // Return a generic 500 status code to the client to avoid exposing internal logic
     return new Response(
       JSON.stringify({ error: "Server error." }),

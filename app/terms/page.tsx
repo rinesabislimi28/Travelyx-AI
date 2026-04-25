@@ -8,14 +8,14 @@ export default function TermsOfService() {
       </p>
 
       <section>
-        <h2 className="mb-3 text-xl font-bold text-white">1. Usage</h2>
+        <h2 className="mb-3 text-xl font-bold text-[var(--foreground)]">1. Usage</h2>
         <p>
           Travelyx-AI is intended for travel planning support. You may use the service for personal or internal planning purposes, subject to these terms.
         </p>
       </section>
 
       <section>
-        <h2 className="mb-3 text-xl font-bold text-white">2. User Responsibilities</h2>
+        <h2 className="mb-3 text-xl font-bold text-[var(--foreground)]">2. User Responsibilities</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>Do not misuse the service or attempt unauthorized access</li>
           <li>Do not republish or resell platform content without permission</li>
@@ -24,14 +24,14 @@ export default function TermsOfService() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-xl font-bold text-white">3. AI Content Accuracy</h2>
+        <h2 className="mb-3 text-xl font-bold text-[var(--foreground)]">3. AI Content Accuracy</h2>
         <p>
           Travelyx-AI generates travel plans using AI. Suggested costs, durations, and recommendations are estimates and should be verified with official travel providers before purchase or booking.
         </p>
       </section>
 
       <section>
-        <h2 className="mb-3 text-xl font-bold text-white">4. Liability</h2>
+        <h2 className="mb-3 text-xl font-bold text-[var(--foreground)]">4. Liability</h2>
         <p>
           To the maximum extent permitted by law, Travelyx is not liable for loss, inconvenience, or travel decisions made based on generated itinerary content.
         </p>

@@ -15,7 +15,7 @@ export default function UpdatePasswordPage() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {});
+    } = supabase.auth.onAuthStateChange(() => { });
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -114,8 +114,8 @@ export default function UpdatePasswordPage() {
       <div className="panel w-full max-w-3xl rounded-[2rem] p-6 sm:p-8">
         <div className="max-w-2xl">
           <span className="eyebrow">Create new password</span>
-          <h1 className="section-title mt-5 text-4xl font-bold text-white">Finish your password reset securely.</h1>
-          <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
+          <h1 className="section-title mt-5 text-4xl font-bold text-[var(--foreground)]">Finish your password reset securely.</h1>
+          <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-base">
             Enter a strong new password. After a successful update, Travelyx will try to send a confirmation email if your email provider is configured.
           </p>
         </div>
