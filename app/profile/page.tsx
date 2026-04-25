@@ -124,7 +124,7 @@ export default function ProfilePage() {
     }
 
     if (previewAvatarUrl !== avatarUrl) {
-      localStorage.setItem("travelyx_avatar", previewAvatarUrl);
+      localStorage.setItem("travelyx_avatar", previewAvatarUrl || "");
       setAvatarUrl(previewAvatarUrl);
       updated = true;
     }

@@ -1,4 +1,10 @@
-import type { TripRecord } from "../types";
+export type TripRecord = {
+  id: string;
+  destination: string;
+  budget: string;
+  itinerary_data: any;
+  created_at: string;
+};
 
 type TripCardProps = {
   trip: TripRecord;
