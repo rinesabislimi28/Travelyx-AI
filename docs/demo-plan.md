@@ -38,5 +38,5 @@ I will briefly highlight these three engineering decisions to demonstrate techni
 ## 5. Plan B (Fallback Strategy)
 In case of a university network failure or if the Groq API experiences downtime during the 5-minute presentation window:
 - **Fallback 1 (Saved Trips):** I will navigate directly to my Dashboard to showcase pre-generated trips. Since these are fetched directly from the Supabase database, they do not require a live connection to the AI engine.
-- **Fallback 2 (Local Media):** I have a folder containing a pre-recorded 1-minute screen capture video and high-quality screenshots of the full generation process and loading states.
+- **Fallback 2 (Local Media):** I have a folder on my laptop containing high-quality screenshots of the full generation process and loading states, ready to present offline.
 - **Code Walkthrough:** I will open VS Code to briefly walk through the Next.js `app/api/chat/route.js` architecture and the System Prompt logic. This demonstrates my engineering knowledge regardless of internet connectivity.
