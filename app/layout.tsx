@@ -24,6 +24,14 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Travelyx-AI",
   description: "AI travel planner for modern city breaks and destination journeys.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  appleWebApp: {
+    title: "Travelyx",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
