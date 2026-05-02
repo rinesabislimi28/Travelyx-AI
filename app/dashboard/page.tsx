@@ -38,6 +38,7 @@ export type TripItineraryData = {
   budget_estimate?: TripBudgetEstimate;
   user_budget?: number | string | null;
   departure?: string;
+  formData?: any;
 };
 
 export type TripRecord = {
