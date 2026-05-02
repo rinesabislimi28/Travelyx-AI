@@ -1,3 +1,10 @@
+/**
+ * Profile Page
+ * 
+ * Allows users to view and edit their profile details. 
+ * Supports updating name, changing passwords, and uploading an avatar image 
+ * that persists in Supabase user_metadata for multi-device sync.
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,6 +13,7 @@ import { useRouter } from "next/navigation";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Link from "next/link";
 import Logo from "../components/Logo";
+import { clearLocalAuth } from "../../lib/clearLocalAuth";
 
 type AuthUser = {
   email?: string;
@@ -44,34 +52,49 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-    if (user) {
-      setUser(user);
-      setFullName(user.user_metadata?.full_name || "");
-      setAvatarUrl(user.user_metadata?.avatar_url || null);
+      if (sessionError) {
+        console.warn("Unable to load Supabase session:", sessionError.message);
+        setLoading(false);
+        return;
+      }
+
+      const user = session?.user;
+
+      if (user) {
+        setUser(user);
+        setFullName(user.user_metadata?.full_name || "");
       
-      const { data, count } = await supabase.from("trips").select("id", { count: "exact" }).eq("user_id", user.id);
-      if (count !== null) setTripCount(count);
+        const { data, count, error } = await supabase.from("trips").select("id", { count: "exact" }).eq("user_id", user.id);
+        if (error) console.warn("Unable to load profile trip count:", error.message);
+        if (count !== null) setTripCount(count);
       
-      try {
-        const favs = JSON.parse(localStorage.getItem("travelyx_favorites") || "{}");
-        if (data) {
-          const validFavs = data.filter((trip) => favs[trip.id]).length;
-          setFavoriteCount(validFavs);
+        try {
+          const favs = JSON.parse(localStorage.getItem("travelyx_favorites") || "{}");
+          if (data) {
+            const validFavs = data.filter((trip) => favs[trip.id]).length;
+            setFavoriteCount(validFavs);
+          }
+        } catch (e) {
+          console.warn("Unable to parse favorites:", e);
         }
-      } catch (e) {}
-    }
+      }
     
-    const savedAvatar = localStorage.getItem("travelyx_avatar");
-    if (savedAvatar) {
-      setAvatarUrl(savedAvatar);
-      setPreviewAvatarUrl(savedAvatar);
+      const savedAvatar = localStorage.getItem("travelyx_avatar");
+      if (savedAvatar) {
+        setAvatarUrl(savedAvatar);
+        setPreviewAvatarUrl(savedAvatar);
+      }
+    } catch (error) {
+      console.warn("Supabase profile request failed:", error);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,21 +134,27 @@ export default function ProfilePage() {
     setIsUpdatingName(true);
     let updated = false;
 
+    const updateData: { full_name?: string } = {};
+
     if (fullName.trim() && fullName !== user?.user_metadata?.full_name) {
+      updateData.full_name = fullName.trim();
+    }
+
+    if (previewAvatarUrl !== avatarUrl) {
+      localStorage.setItem("travelyx_avatar", previewAvatarUrl || "");
+      setAvatarUrl(previewAvatarUrl);
+      updated = true;
+    }
+
+    if (Object.keys(updateData).length > 0) {
       const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName.trim() },
+        data: updateData,
       });
       if (error) {
         showFeedback("error", error.message);
         setIsUpdatingName(false);
         return;
       }
-      updated = true;
-    }
-
-    if (previewAvatarUrl !== avatarUrl) {
-      localStorage.setItem("travelyx_avatar", previewAvatarUrl || "");
-      setAvatarUrl(previewAvatarUrl);
       updated = true;
     }
 
@@ -224,7 +253,7 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to delete account from server.");
       }
 
-      await supabase.auth.signOut();
+      clearLocalAuth();
       router.push("/");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";

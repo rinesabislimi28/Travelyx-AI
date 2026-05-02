@@ -65,20 +65,46 @@ export default function DashboardPage() {
 
   const fetchTrips = async () => {
     setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+      if (sessionError) {
+        console.warn("Unable to load Supabase session:", sessionError.message);
+        setLoading(false);
+        return;
+      }
+
+      const user = sessionData.session?.user;
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
     
-    setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || "Traveler");
-
-    const { data, error } = await supabase.from("trips").select("*").order("created_at", { ascending: false });
-    if (data && !error) setTrips(data);
-    setLoading(false);
+      if (user.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+        localStorage.setItem("travelyx_avatar", user.user_metadata.avatar_url);
+      }
+      
+      setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || "Traveler");
+      const { data, error } = await supabase.from("trips").select("*").order("created_at", { ascending: false });
+      if (error) console.warn("Unable to load trips:", error.message);
+      if (data && !error) {
+        setTrips(data);
+        // Sync DB favorites with local state
+        const dbFavs: Record<string, boolean> = {};
+        data.forEach(trip => {
+          if (trip.is_favorite) dbFavs[trip.id] = true;
+        });
+        
+        // Merge with local ones just in case
+        setFavorites(prev => ({ ...prev, ...dbFavs }));
+      }
+    } catch (error) {
+      console.warn("Supabase request failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -91,16 +117,25 @@ export default function DashboardPage() {
       }
     }
     const savedAvatar = localStorage.getItem("travelyx_avatar");
-    if (savedAvatar) setAvatarUrl(savedAvatar);
+    if (savedAvatar && !avatarUrl) setAvatarUrl(savedAvatar);
     
     fetchTrips();
   }, []);
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  const toggleFavorite = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newFavs = { ...favorites, [id]: !favorites[id] };
+    const isNowFavorite = !favorites[id];
+    const newFavs = { ...favorites, [id]: isNowFavorite };
     setFavorites(newFavs);
     localStorage.setItem("travelyx_favorites", JSON.stringify(newFavs));
+
+    // Try saving to DB (fails silently if SQL column not added yet)
+    try {
+      await supabase.from("trips").update({ is_favorite: isNowFavorite }).eq("id", id);
+      setTrips(prev => prev.map(t => t.id === id ? { ...t, is_favorite: isNowFavorite } : t));
+    } catch (err) {
+      console.warn("Favorite not saved to DB", err);
+    }
   };
 
   const confirmDelete = async () => {
@@ -172,12 +207,14 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className={selectedTrip ? "min-h-screen overflow-x-hidden" : "min-h-screen overflow-x-hidden lg:h-screen lg:overflow-hidden"}>
-        {selectedTrip ? (
-          <TripView selectedTrip={selectedTrip} onClose={() => setSelectedTrip(null)} />
-        ) : (
-          <div className="flex min-h-screen flex-col overflow-x-hidden lg:h-screen lg:flex-row lg:overflow-hidden">
-            {isMobileSidebarOpen && (
+      <div className="min-h-screen overflow-x-hidden lg:h-screen lg:overflow-hidden">
+        {selectedTrip && (
+          <div className="fixed inset-0 z-[60] bg-background overflow-y-auto">
+            <TripView selectedTrip={selectedTrip} onClose={() => setSelectedTrip(null)} />
+          </div>
+        )}
+        <div className={`flex min-h-screen flex-col overflow-x-hidden lg:h-screen lg:flex-row lg:overflow-hidden ${selectedTrip ? "hidden" : ""}`}>
+          {isMobileSidebarOpen && (
               <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
             )}
 
@@ -352,20 +389,16 @@ export default function DashboardPage() {
                 <button 
                   type="button" 
                   onClick={() => setIsMobileSidebarOpen(true)} 
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--card-strong)] border border-[var(--line-strong)] px-4 py-2.5 text-sm font-bold text-[var(--foreground)] shadow-[0_0_20px_rgba(38,208,184,0.15)] transition-transform active:scale-[0.98] hover:shadow-[0_0_30px_rgba(38,208,184,0.3)] animate-[pulse_2s_infinite]"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#35c6b3] border border-[#35c6b3] px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(53,198,179,0.4)] transition-transform active:scale-[0.98] hover:shadow-[0_0_35px_rgba(53,198,179,0.6)] animate-[pulse_2s_infinite]"
                 >
-                  <span className="relative flex h-2.5 w-2.5 mr-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#35c6b3] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#35c6b3]"></span>
-                  </span>
-                  Open saved trips
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                  OPEN SAVED TRIPS
                 </button>
               </div>
               <div className="lg:hidden h-[72px]"></div>
               <AIForm onTripGenerated={fetchTrips} />
             </main>
           </div>
-        )}
 
         {tripToDelete && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">

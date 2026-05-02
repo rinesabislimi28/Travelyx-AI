@@ -16,9 +16,19 @@ export default function ProtectedRoute({ children }) {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) router.push("/login");
-      else setLoading(false);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn("Unable to load Supabase session:", error.message);
+          router.push("/login");
+          return;
+        }
+        if (!session) router.push("/login");
+        else setLoading(false);
+      } catch (error) {
+        console.warn("Supabase session request failed:", error);
+        router.push("/login");
+      }
     };
     checkUser();
   }, [router]);

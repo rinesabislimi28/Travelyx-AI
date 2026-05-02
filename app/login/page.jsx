@@ -1,3 +1,10 @@
+/**
+ * Login Page
+ * 
+ * Handles user authentication via Supabase. Includes session checking to automatically
+ * redirect already authenticated users to the dashboard, and an option to remember the
+ * email locally.
+ */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,7 +27,14 @@ export default function LoginPage() {
       setEmail(savedEmail);
       setRememberMe(true);
     }
-  }, []);
+    
+    // Automatically redirect to dashboard if already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push("/dashboard");
+      }
+    });
+  }, [router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

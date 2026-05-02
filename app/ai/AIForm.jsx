@@ -8,12 +8,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InteractiveDay from "../components/InteractiveDay";
+import FlightResults from "../components/FlightResults";
 import { normalizedLocations } from "../../lib/locations";
 import Logo from "../components/Logo";
+import { clearLocalAuth } from "../../lib/clearLocalAuth";
 
 const travelStyles = ["Cultural", "Adventure", "Relaxing", "Family", "Luxury", "Romantic"];
 
@@ -44,6 +48,21 @@ function isValidLocationInput(value) {
   if (!/^[\p{L}\s,'-]+$/u.test(value.trim())) {
     return false;
   }
+  
+  // Block common nonsense or laugh strings
+  if (/haha|jaja|hehe|hihi|xaxa|qwe/i.test(normalizedValue)) {
+    return false;
+  }
+  
+  // Block 3+ consecutive identical characters (e.g., aaa, jjj)
+  if (/([a-z])\1{2,}/i.test(normalizedValue)) {
+    return false;
+  }
+  
+  // Block inputs with zero vowels (unless very short)
+  if (normalizedValue.length >= 4 && !/[aeiouy]/i.test(normalizedValue)) {
+    return false;
+  }
 
   // Ne lejuam formatin bazë, ndërsa vërtetësinë e lokacionit ia lëmë Inteligjencës Artificiale
   // për të suportuar ÇDO qytet dhe fshat të botës, duke bllokuar manualisht gabimet e rënda nga AI.
@@ -60,7 +79,7 @@ function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent,
 
       <div className="rounded-[1.6rem] border border-[var(--line-strong)] bg-[var(--card)] p-5 sm:p-6 shadow-sm overflow-hidden relative transition-all hover:shadow-lg">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-        
+
         <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--muted)] mb-1">Your Budget</p>
@@ -80,8 +99,8 @@ function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent,
             </p>
           </div>
           <div className="w-full h-2 rounded-full bg-[var(--line)] overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 ${remaining < 0 ? 'bg-[#ff5964]' : 'bg-[var(--accent-2)]'}`} 
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ${remaining < 0 ? 'bg-[#ff5964]' : 'bg-[var(--accent-2)]'}`}
               style={{ width: `${Math.min((totalSpent / (userBudgetNumber || 1)) * 100, 100)}%` }}
             />
           </div>
@@ -104,7 +123,7 @@ function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent,
             </div>
             <div className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--background)] border border-[var(--line)] transition-all hover:-translate-y-1 hover:shadow-md cursor-default">
               <div className="text-sm text-[var(--muted)] flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[var(--accent-2)]"></span> 
+                <span className="w-2 h-2 rounded-full bg-[var(--accent-2)]"></span>
                 <div>
                   Daily
                   <p className="text-[9px] uppercase tracking-wider opacity-60">Food, Taxi, Tickets</p>
@@ -115,7 +134,7 @@ function renderBudgetBlock({ budget_estimate = {}, userBudgetNumber, totalSpent,
           </div>
         </div>
       </div>
-      
+
       <p className="mt-3 text-xs text-[var(--muted)] opacity-80 text-center">* Estimates are AI-generated based on season & availability.</p>
     </div>
   );
@@ -136,7 +155,7 @@ function renderMapBlock({ departure, destination }) {
             Ready to go? Open the live map to see the complete journey from <span className="font-bold text-[var(--foreground)]">{departure}</span> to <span className="font-bold text-[var(--foreground)]">{destination}</span>, including precise directions and travel options.
           </p>
         </div>
-        <a 
+        <a
           href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(departure)}&destination=${encodeURIComponent(destination)}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -151,6 +170,25 @@ function renderMapBlock({ departure, destination }) {
 }
 
 export default function AIForm({ onTripGenerated = () => { } }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+
+  const handleSwapLocations = () => {
+    setFormData((prev) => ({
+      ...prev,
+      departure: prev.destination,
+      destination: prev.departure
+    }));
+  };
+
   const [formData, setFormData] = useState({
     departure: "",
     destination: "",
@@ -159,29 +197,64 @@ export default function AIForm({ onTripGenerated = () => { } }) {
     travelStyle: "Cultural",
     companions: "Solo",
     partySize: "3",
-    dateMode: "flexible",
+    dateMode: "fixed",
     flexibleDate: "Summer",
     fixedDate: "",
+    returnDate: "",
   });
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [userName, setUserName] = useState("Traveler");
   const [userId, setUserId] = useState(null);
+  const [locationSuggestions, setLocationSuggestions] = useState(normalizedLocations);
   const router = useRouter();
   const responseEndRef = useRef(null);
+  const responseStartRef = useRef(null);
+
+  const fetchLocationSuggestions = async (query) => {
+    if (!query || query.length < 3) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const newLocs = data.map(d => {
+          const city = d.address?.city || d.address?.town || d.address?.village || d.name;
+          const country = d.address?.country;
+          if (city && country) return `${city}, ${country}`;
+          return d.display_name.split(',').slice(0, 2).join(',');
+        }).filter(Boolean);
+        setLocationSuggestions(prev => Array.from(new Set([...prev, ...newLocs])));
+      }
+    } catch (e) {
+      console.error("Location fetch error", e);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user?.user_metadata?.full_name) setUserName(data.user.user_metadata.full_name);
-      if (data?.user?.id) setUserId(data.user.id);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn("Unable to load Supabase session:", error.message);
+          return;
+        }
+        const user = data.session?.user;
+        if (user?.user_metadata?.full_name) setUserName(user.user_metadata.full_name);
+        if (user?.id) setUserId(user.id);
+      } catch (error) {
+        console.warn("Supabase user request failed:", error);
+      }
     };
     fetchUser();
   }, []);
 
   useEffect(() => {
-    responseEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (loading) {
+      responseEndRef.current?.scrollIntoView({ behavior: "auto" });
+    } else if (messages.length > 0 && messages[messages.length - 1].role === "ai") {
+      responseStartRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+    }
   }, [messages, loading]);
 
   useEffect(() => {
@@ -191,7 +264,7 @@ export default function AIForm({ onTripGenerated = () => { } }) {
   }, [error]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    clearLocalAuth();
     router.push("/");
   };
 
@@ -206,9 +279,10 @@ export default function AIForm({ onTripGenerated = () => { } }) {
       travelStyle: "Cultural",
       companions: "Solo",
       partySize: "3",
-      dateMode: "flexible",
+      dateMode: "fixed",
       flexibleDate: "Summer",
       fixedDate: "",
+      returnDate: "",
     });
   };
 
@@ -220,8 +294,15 @@ export default function AIForm({ onTripGenerated = () => { } }) {
       duration: "5",
       budget,
       travelStyle: style,
+      dateMode: "flexible",
+      flexibleDate: "Summer"
     }));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const scrollContainer = document.getElementById("ai-form-scroll-container");
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -237,12 +318,27 @@ export default function AIForm({ onTripGenerated = () => { } }) {
     if (!isValidLocationInput(departure)) return setError("Please enter a valid departure city or country name.");
     if (!isValidLocationInput(destination)) return setError("Please enter a valid destination city or country name.");
     if (departure.toLowerCase() === destination.toLowerCase()) return setError("Departure and destination cannot be the same.");
+
+    if (formData.dateMode === "fixed") {
+      if (!startDate) return setError("Please select a departure date.");
+      if (!endDate) return setError("Please select a return date.");
+    }
+
     if (!formData.budget) return setError("Please enter a budget.");
     if (isNaN(formData.budget) || Number(formData.budget) < 1) return setError("Budget must be a valid positive number.");
     if (!navigator.onLine) return setError("Network error. Please check your connection and try again.");
 
     let dateContext = "";
     let displayDate = "";
+    let finalDuration = formData.duration;
+
+    // Sync dateRange to formData before processing
+    if (formData.dateMode === "fixed") {
+      const formatStr = (d) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "";
+      formData.fixedDate = formatStr(startDate);
+      formData.returnDate = formatStr(endDate);
+    }
+
     if (formData.dateMode === "flexible") {
       if (formData.flexibleDate !== "Any time") {
         dateContext = ` The trip will take place during ${formData.flexibleDate}. Ensure the recommendations, activities, and local events match the ${formData.flexibleDate} weather and season appropriately.`;
@@ -251,7 +347,19 @@ export default function AIForm({ onTripGenerated = () => { } }) {
         displayDate = "Any time";
       }
     } else {
-      if (formData.fixedDate) {
+      if (formData.fixedDate && formData.returnDate) {
+        const start = new Date(formData.fixedDate);
+        const end = new Date(formData.returnDate);
+        if (end < start) {
+          setError("Return date cannot be earlier than departure date.");
+          setLoading(false);
+          return;
+        }
+        const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        finalDuration = diffDays.toString();
+        dateContext = ` The trip starts on exactly ${formData.fixedDate} and ends on ${formData.returnDate}. Ensure recommendations, seasonal activities, and availability match these specific dates.`;
+        displayDate = `${new Date(formData.fixedDate).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} - ${new Date(formData.returnDate).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}`;
+      } else if (formData.fixedDate) {
         dateContext = ` The trip starts on exactly ${formData.fixedDate}. Ensure recommendations, seasonal activities, and availability match this specific date.`;
         displayDate = formData.fixedDate;
       } else {
@@ -264,17 +372,27 @@ export default function AIForm({ onTripGenerated = () => { } }) {
       companionsText = `${formData.partySize} people (${formData.companions})`;
     }
 
-    const prompt = `Create a detailed ${formData.duration}-day ${formData.travelStyle} itinerary departing from ${departure} and traveling to ${destination} for a ${companionsText} trip with a budget of ${formData.budget} euros.${dateContext} The departure or destination may be a city, a country, or a city with country. Make sure the total JSON output covers exactly ${formData.duration} days and keeps the trip realistic. IMPORTANT: The budget of ${formData.budget} euros is the TOTAL combined budget for all ${companionsText}. Ensure that all costs returned in 'budget_estimate' represent the TOTAL combined cost for the entire group, NOT per person. For 'daily_expenses_total', calculate it accurately based on 3 meals a day plus local transport and tickets for ALL people in the group.`;
-    const userDisplay = `${departure} to ${destination} | ${formData.duration} days | EUR ${formData.budget} | ${formData.travelStyle} | ${companionsText} | ${displayDate}`;
+    const prompt = `Create a detailed ${finalDuration}-day ${formData.travelStyle} itinerary departing from ${departure} and traveling to ${destination} for a ${companionsText} trip with a budget of ${formData.budget} euros.${dateContext} The departure or destination may be a city, a country, or a city with country. Make sure the total JSON output covers exactly ${finalDuration} days and keeps the trip realistic. IMPORTANT: The budget of ${formData.budget} euros is the TOTAL combined budget for all ${companionsText}. Ensure that all costs returned in 'budget_estimate' represent the TOTAL combined cost for the entire group, NOT per person. For 'daily_expenses_total', calculate it accurately based on 3 meals a day plus local transport and tickets for ALL people in the group.`;
+    const userDisplay = `${departure} to ${destination} | ${finalDuration} days | EUR ${formData.budget} | ${formData.travelStyle} | ${companionsText} | ${displayDate}`;
 
-    setMessages((prev) => [...prev.slice(-49), { role: "user", content: userDisplay }]);
+    setMessages([{ role: "user", content: userDisplay }]);
     setError(null);
     setLoading(true);
 
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (sessionError || !accessToken) {
+        throw new Error("Authentication error. Please log in again.");
+      }
+
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ message: prompt }),
       });
 
@@ -300,13 +418,13 @@ export default function AIForm({ onTripGenerated = () => { } }) {
           data.result.user_budget = formData.budget;
           data.result.travelStyle = formData.travelStyle;
           data.result.companionsText = companionsText;
-          data.result.duration = formData.duration;
+          data.result.duration = finalDuration;
           data.result.displayDate = displayDate;
         }
         aiContent.user_budget = formData.budget;
         aiContent.travelStyle = formData.travelStyle;
         aiContent.companionsText = companionsText;
-        aiContent.duration = formData.duration;
+        aiContent.duration = finalDuration;
         aiContent.displayDate = displayDate;
 
         const {
@@ -337,7 +455,7 @@ export default function AIForm({ onTripGenerated = () => { } }) {
                 </div>
                 <div className="flex flex-wrap gap-2 lg:max-w-[280px] lg:justify-end">
                   <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)] shadow-sm">
-                    {aiContent.duration || formData.duration} days
+                    {aiContent.duration || finalDuration} days
                   </span>
                   <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)] shadow-sm">
                     {aiContent.travelStyle || formData.travelStyle}
@@ -353,15 +471,29 @@ export default function AIForm({ onTripGenerated = () => { } }) {
                 </div>
               </div>
               {local_event_or_festival && <div className="status-info mt-5">{local_event_or_festival}</div>}
-              <div className="mt-5 inline-flex rounded-full border border-[var(--line-strong)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] shadow-sm">
-                Best time to visit: <span className="ml-2 font-bold text-[var(--foreground)]">{best_time_to_visit}</span>
+              <div className="mt-5 inline-block rounded-2xl border border-[var(--line-strong)] bg-[var(--card)] px-5 py-3 text-sm text-[var(--muted)] shadow-sm leading-relaxed">
+                Best time to visit: <span className="ml-1 font-bold text-[var(--foreground)]">{best_time_to_visit}</span>
               </div>
             </div>
-            
-            {/* Map Block At the Top */}
+
             {renderMapBlock({ departure, destination: plannedDestination })}
 
             {renderBudgetBlock({ budget_estimate, userBudgetNumber, totalSpent, remaining })}
+
+            <FlightResults 
+              departure={departure} 
+              destination={plannedDestination} 
+              date={
+                formData.dateType === "exact" && formData.dateRange?.from
+                  ? new Date(formData.dateRange.from.getTime() - formData.dateRange.from.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                  : (formData.fixedDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+              }
+              returnDate={
+                formData.dateType === "exact" && formData.dateRange?.to
+                  ? new Date(formData.dateRange.to.getTime() - formData.dateRange.to.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                  : new Date(new Date(formData.fixedDate || Date.now() + 30 * 24 * 60 * 60 * 1000).getTime() + (formData.duration || 3) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              }
+            />
 
             <div className="space-y-4 mt-6">
               {itinerary.length > 0 ? (
@@ -372,12 +504,12 @@ export default function AIForm({ onTripGenerated = () => { } }) {
                   const evening = day.evening ?? ["Free time"];
 
                   return (
-                    <InteractiveDay 
-                      key={dayNum} 
-                      dayNum={dayNum} 
-                      morning={morning} 
-                      afternoon={afternoon} 
-                      evening={evening} 
+                    <InteractiveDay
+                      key={dayNum}
+                      dayNum={dayNum}
+                      morning={morning}
+                      afternoon={afternoon}
+                      evening={evening}
                     />
                   );
                 })
@@ -389,7 +521,7 @@ export default function AIForm({ onTripGenerated = () => { } }) {
 
             <div className="mt-8 text-center border-t border-[var(--line-strong)] pt-8 pb-4 transition-all duration-500 hover:-translate-y-1">
               <h3 className="text-2xl font-bold text-[var(--foreground)] mb-3 flex items-center justify-center gap-2">
-                Adventure awaits! 
+                Adventure awaits!
                 <span className="inline-block animate-[bounce_2s_infinite]">🌍</span>
                 <span className="inline-block animate-[bounce_2s_infinite_0.3s]">✈️</span>
               </h3>
@@ -406,11 +538,26 @@ export default function AIForm({ onTripGenerated = () => { } }) {
       if (userId && data.result) {
         try {
           const budgetCost = formData.budget || data.result.budget_estimate?.total_trip_cost?.toString() || "0";
+          
+          // Merge formData into the saved JSON so TripView has all the info to render Flights
+          const enrichedItineraryData = {
+            ...data.result,
+            formData: {
+              dateType: formData.dateType,
+              fixedDate: formData.fixedDate,
+              duration: formData.duration,
+              dateRange: formData.dateRange ? {
+                from: formData.dateRange.from ? formData.dateRange.from.toISOString() : null,
+                to: formData.dateRange.to ? formData.dateRange.to.toISOString() : null
+              } : null
+            }
+          };
+
           const { error: saveError } = await supabase.from("trips").insert({
             user_id: userId,
             destination,
             budget: budgetCost,
-            itinerary_data: data.result,
+            itinerary_data: enrichedItineraryData,
           });
 
           if (!saveError && typeof onTripGenerated === "function") onTripGenerated();
@@ -430,7 +577,7 @@ export default function AIForm({ onTripGenerated = () => { } }) {
   };
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5 relative">
+    <div id="ai-form-scroll-container" className="h-full overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5 relative">
       {loading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[var(--background)]/80 backdrop-blur-md transition-all duration-300">
           <div className="relative flex h-24 w-24 items-center justify-center">
@@ -464,24 +611,24 @@ export default function AIForm({ onTripGenerated = () => { } }) {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <button 
-                onClick={handleReset} 
+              <button
+                onClick={handleReset}
                 className="flex items-center gap-2 rounded-full border border-[#ffd166]/30 bg-[#ffd166]/10 px-4 py-2 text-sm font-bold text-[#ffd166] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(255,209,102,0.2)] hover:bg-[#ffd166]/20 active:scale-95"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 Reset form
               </button>
-              
-              <Link 
-                href="/profile" 
+
+              <Link
+                href="/profile"
                 className="flex items-center gap-2 rounded-full border border-[#35c6b3]/30 bg-[#35c6b3]/10 px-4 py-2 text-sm font-bold text-[#35c6b3] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(53,198,179,0.2)] hover:bg-[#35c6b3]/20 active:scale-95"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 Settings
               </Link>
-              
-              <button 
-                onClick={handleLogout} 
+
+              <button
+                onClick={handleLogout}
                 className="flex items-center gap-2 rounded-full border border-[#ff5b73]/30 bg-[#ff5b73]/10 px-4 py-2 text-sm font-bold text-[#ff5b73] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(255,91,115,0.2)] hover:bg-[#ff5b73]/20 active:scale-95"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -492,179 +639,227 @@ export default function AIForm({ onTripGenerated = () => { } }) {
 
           <div className="mt-6 space-y-6">
             <form onSubmit={handleSubmit} className="rounded-[1.8rem] border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)] sm:p-6">
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
-                <div className="min-w-0">
-                  <label className="field-label">Departure city or country</label>
-                  <input
-                    list="travelyx-locations"
-                    value={formData.departure}
-                    onChange={(e) => setFormData({ ...formData, departure: e.target.value })}
-                    placeholder="Prishtina, Kosovo"
-                    className="field"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <label className="field-label">Destination city or country</label>
-                  <input
-                    list="travelyx-locations"
-                    value={formData.destination}
-                    onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                    placeholder="Barcelona, Spain"
-                    className="field"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <label className="field-label">Duration</label>
-                  <select
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    className="field-select min-w-0"
+              {/* Date Mode Toggle */}
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <button 
+                  type="button"
+                  onClick={() => setFormData({...formData, dateMode: "fixed"})}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${formData.dateMode === "fixed" ? "bg-[var(--accent)] text-white shadow-md" : "bg-transparent text-[var(--muted)] hover:bg-[var(--line)]"}`}
+                >
+                  Specific Dates
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setFormData({...formData, dateMode: "flexible"})}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${formData.dateMode === "flexible" ? "bg-[var(--accent)] text-white shadow-md" : "bg-transparent text-[var(--muted)] hover:bg-[var(--line)]"}`}
+                >
+                  Flexible Dates
+                </button>
+              </div>
+
+              {/* Primary Search Bar (Skyscanner Style) */}
+              <div className="flex flex-col xl:flex-row bg-[var(--background)] border border-[var(--line-strong)] rounded-[1.4rem] p-1.5 shadow-sm gap-1">
+                {/* From/To Container with Swap Button */}
+                <div className="relative flex flex-col xl:flex-row flex-[2] gap-1">
+                  {/* Departure */}
+                  <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all">
+                    <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider">From</label>
+                    <input
+                      list="travelyx-locations"
+                      value={formData.departure}
+                      onChange={(e) => {
+                        setFormData({ ...formData, departure: e.target.value });
+                        fetchLocationSuggestions(e.target.value);
+                      }}
+                      placeholder="Prishtina (PRN)"
+                      className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]/50"
+                    />
+                  </div>
+
+                  {/* Swap Button */}
+                  <button
+                    type="button"
+                    onClick={handleSwapLocations}
+                    title="Swap locations"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--background)] border border-[var(--line-strong)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--accent)] shadow-sm flex items-center justify-center transition-all hover:scale-110"
                   >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((d) => (
-                      <option key={d} value={d}>
-                        {d} days
-                      </option>
-                    ))}
-                  </select>
+                    <svg className="w-3.5 h-3.5 xl:rotate-0 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                  </button>
+
+                  {/* Destination */}
+                  <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all">
+                    <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider">To</label>
+                    <input
+                      list="travelyx-locations"
+                      value={formData.destination}
+                      onChange={(e) => {
+                        setFormData({ ...formData, destination: e.target.value });
+                        fetchLocationSuggestions(e.target.value);
+                      }}
+                      placeholder="Country, city"
+                      className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]/50"
+                    />
+                  </div>
+                </div>
+
+                {/* Dates */}
+                {formData.dateMode === "fixed" ? (
+                  <div className="flex-[2] relative">
+                    <DatePicker
+                      selectsRange={true}
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={(update) => {
+                        setDateRange(update);
+                      }}
+                      monthsShown={isMobile ? 1 : 2}
+                      minDate={new Date()}
+                      dateFormat="dd MMM yy"
+                      wrapperClassName="w-full h-full"
+                      customInput={
+                        <div className="flex w-full h-full cursor-pointer">
+                          <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all">
+                            <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider cursor-pointer pointer-events-none">Depart</label>
+                            <div className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none text-left min-h-[50px] flex items-center">
+                              {startDate ? startDate.toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "2-digit"}) : <span className="text-[var(--muted)]/50 font-medium">Add date</span>}
+                            </div>
+                          </div>
+                          <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all border-l border-[var(--line-strong)]">
+                            <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider cursor-pointer pointer-events-none">Return</label>
+                            <div className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none text-left min-h-[50px] flex items-center">
+                              {endDate ? endDate.toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "2-digit"}) : <span className="text-[var(--muted)]/50 font-medium">Add date</span>}
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all">
+                      <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider">Season</label>
+                      <select
+                        value={formData.flexibleDate}
+                        onChange={(e) => setFormData({ ...formData, flexibleDate: e.target.value })}
+                        className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none appearance-none cursor-pointer"
+                      >
+                        <option value="Any time">Any time</option>
+                        <option value="Spring">Spring</option>
+                        <option value="Summer">Summer</option>
+                        <option value="Autumn">Autumn</option>
+                        <option value="Winter">Winter</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                      </select>
+                    </div>
+                    <div className="flex-1 relative bg-[var(--card)] rounded-xl border border-transparent hover:border-[var(--line)] focus-within:border-[var(--accent)] transition-all">
+                      <label className="absolute top-2 left-3 text-[10px] uppercase font-bold text-[var(--muted)] tracking-wider">Duration</label>
+                      <select
+                        value={formData.duration}
+                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                        className="w-full bg-transparent pt-6 pb-2 px-3 text-sm font-bold text-[var(--foreground)] outline-none appearance-none cursor-pointer"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((d) => (
+                          <option key={d} value={d}>
+                            {d} days
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Submit Button */}
+                <div className="xl:w-32 xl:shrink-0 flex items-stretch">
+                  <button type="submit" disabled={loading} className="w-full h-full rounded-xl bg-[#35c6b3] text-black font-bold hover:bg-[#2eb09f] transition-colors py-3 xl:py-0 shadow-sm flex items-center justify-center">
+                    {loading ? "..." : "Search"}
+                  </button>
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="min-w-0">
-                  <label className="field-label">Budget (EUR)</label>
-                  <input
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    placeholder="800"
-                    className="field"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <label className="field-label">Travel style</label>
-                  <select
-                    value={formData.travelStyle}
-                    onChange={(e) => setFormData({ ...formData, travelStyle: e.target.value })}
-                    className="field-select min-w-0"
-                  >
-                    {travelStyles.map((style) => (
-                      <option key={style} value={style}>
-                        {style}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="min-w-0 flex gap-2">
-                  <div className="flex-1 min-w-0">
-                    <label className="field-label">Who with?</label>
+              {/* Secondary Options */}
+              <div className="mt-4 flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex items-center gap-4 flex-wrap">
+                  {/* Budget */}
+                  <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--line-strong)] rounded-lg px-3 py-1.5 focus-within:border-[var(--accent)] transition-colors">
+                    <span className="text-sm font-bold text-[var(--muted)]">Budget €</span>
+                    <input
+                      type="number"
+                      value={formData.budget}
+                      onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                      placeholder="800"
+                      className="w-16 bg-transparent text-sm font-bold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]/50"
+                    />
+                  </div>
+                  
+                  {/* Travel Style */}
+                  <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--line-strong)] rounded-lg px-3 py-1.5 focus-within:border-[var(--accent)] transition-colors">
+                    <span className="text-sm font-bold text-[var(--muted)]">Style</span>
+                    <select
+                      value={formData.travelStyle}
+                      onChange={(e) => setFormData({ ...formData, travelStyle: e.target.value })}
+                      className="bg-transparent text-sm font-bold text-[var(--foreground)] outline-none cursor-pointer"
+                    >
+                      {travelStyles.map((style) => (
+                        <option key={style} value={style}>
+                          {style}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Who with */}
+                  <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--line-strong)] rounded-lg px-3 py-1.5 focus-within:border-[var(--accent)] transition-colors">
+                    <span className="text-sm font-bold text-[var(--muted)]">Who</span>
                     <select
                       value={formData.companions}
                       onChange={(e) => setFormData({ ...formData, companions: e.target.value })}
-                      className="field-select min-w-0"
+                      className="bg-transparent text-sm font-bold text-[var(--foreground)] outline-none cursor-pointer"
                     >
-                      <option value="Solo">Solo</option>
-                      <option value="Couple">Couple</option>
+                      <option value="Solo">1 Adult</option>
+                      <option value="Couple">2 Adults</option>
                       <option value="Family">Family</option>
-                      <option value="Friends">Friends</option>
+                      <option value="Friends">Group</option>
                     </select>
                   </div>
+
                   {(formData.companions === "Family" || formData.companions === "Friends") && (
-                    <div className="w-16 shrink-0 animate-in fade-in zoom-in duration-300">
-                      <label className="field-label text-center">Size</label>
+                    <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--line-strong)] rounded-lg px-3 py-1.5 focus-within:border-[var(--accent)] transition-colors animate-in fade-in zoom-in duration-300">
+                      <span className="text-sm font-bold text-[var(--muted)]">Size</span>
                       <input
                         type="number"
                         min="3"
                         max="20"
                         value={formData.partySize}
                         onChange={(e) => setFormData({ ...formData, partySize: e.target.value })}
-                        className="field text-center px-1"
+                        className="w-12 bg-transparent text-sm font-bold text-[var(--foreground)] outline-none text-center"
                       />
                     </div>
                   )}
-                </div>
-                <div className="min-w-0">
-                  <label className="field-label">Date type</label>
-                  <select
-                    value={formData.dateMode}
-                    onChange={(e) => setFormData({ ...formData, dateMode: e.target.value })}
-                    className="field-select min-w-0"
-                  >
-                    <option value="flexible">Flexible Date</option>
-                    <option value="fixed">Fixed Date</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
-                {formData.dateMode === "flexible" ? (
-                  <div className="min-w-0 md:col-span-2 xl:col-span-1">
-                    <label className="field-label">Season / Month</label>
-                    <select
-                      value={formData.flexibleDate}
-                      onChange={(e) => setFormData({ ...formData, flexibleDate: e.target.value })}
-                      className="field-select min-w-0"
-                    >
-                      <option value="Any time">Any time</option>
-                      <option value="Spring">Spring</option>
-                      <option value="Summer">Summer</option>
-                      <option value="Autumn">Autumn</option>
-                      <option value="Winter">Winter</option>
-                      <option value="January">January</option>
-                      <option value="February">February</option>
-                      <option value="March">March</option>
-                      <option value="April">April</option>
-                      <option value="May">May</option>
-                      <option value="June">June</option>
-                      <option value="July">July</option>
-                      <option value="August">August</option>
-                      <option value="September">September</option>
-                      <option value="October">October</option>
-                      <option value="November">November</option>
-                      <option value="December">December</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div className="min-w-0 md:col-span-2 xl:col-span-1">
-                    <label className="field-label">Start Date</label>
-                    <input
-                      type="date"
-                      value={formData.fixedDate}
-                      onChange={(e) => setFormData({ ...formData, fixedDate: e.target.value })}
-                      className="field"
-                    />
-                    {formData.fixedDate && (
-                      <p className="mt-2 text-xs text-[var(--muted)]">
-                        Return date:{" "}
-                        <span className="text-[var(--muted)] font-medium">
-                          {new Date(
-                            new Date(formData.fixedDate).getTime() +
-                            (Number(formData.duration) - 1) * 24 * 60 * 60 * 1000
-                          ).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                )}
-                <div className="hidden xl:block xl:col-span-2" />
+
+                </div>
               </div>
 
               <p className="mt-4 text-sm text-[var(--muted)]">
                 Tip: you can search like <span className="font-bold text-[var(--foreground)]">Rome</span>, <span className="font-bold text-[var(--foreground)]">Italy</span>, or <span className="font-bold text-[var(--foreground)]">Rome, Italy</span>.
               </p>
-
-              <button type="submit" disabled={loading} className="button-primary mt-5 w-full sm:w-auto">
-                {loading ? "Generating itinerary..." : "Plan my trip"}
-              </button>
             </form>
 
             {error && <div className="status-error">{error}</div>}
 
             <datalist id="travelyx-locations">
-              {normalizedLocations.map((location) => (
+              {locationSuggestions.map((location) => (
                 <option key={location} value={location} />
               ))}
             </datalist>
@@ -675,9 +870,10 @@ export default function AIForm({ onTripGenerated = () => { } }) {
                   {messages.map((msg, i) => (
                     <div
                       key={i}
+                      ref={i === messages.length - 2 && msg.role === "user" && messages[messages.length - 1]?.role === "ai" ? responseStartRef : null}
                       className={`rounded-[1.8rem] border p-4 sm:p-6 shadow-sm ${msg.role === "user"
-                          ? "border-[var(--line)] bg-[var(--background)] text-[var(--foreground)]"
-                          : "border-[var(--line-strong)] bg-[var(--card)] text-[var(--foreground)]"
+                        ? "border-[var(--line)] bg-[var(--background)] text-[var(--foreground)]"
+                        : "border-[var(--line-strong)] bg-[var(--card)] text-[var(--foreground)]"
                         }`}
                     >
                       <p className="mb-3 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">

@@ -1,4 +1,10 @@
 "use client";
+/**
+ * InteractiveDay Component
+ * 
+ * Renders a single day's itinerary in a clean, interactive timeline format.
+ * Groups events by morning, afternoon, and evening blocks for readability.
+ */
 import React, { useState } from 'react';
 
 export default function InteractiveDay({ dayNum, morning, afternoon, evening }) {

@@ -62,6 +62,13 @@ export const locationSuggestions = [
   "Auckland, New Zealand", "Wellington, New Zealand", "Queenstown, New Zealand"
 ];
 
+/**
+ * Locations Data Module
+ * 
+ * Contains a normalized dataset of major global cities, airports, and popular
+ * travel destinations. Used to provide fast, client-side autocomplete and
+ * basic validation for user inputs in the AI Form.
+ */
 export const normalizedLocations = [...new Set(locationSuggestions)].sort((a, b) =>
   a.localeCompare(b)
 );

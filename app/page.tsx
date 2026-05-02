@@ -5,6 +5,13 @@
  * application features, working mechanism, and handles non-authenticated user navigation
  * to the login and signup flows.
  */
+/**
+ * Travelyx-AI Landing Page
+ * 
+ * The main public-facing entry point of the application. Showcases features,
+ * provides navigation to authentication flows, and demonstrates the platform's
+ * value proposition to potential users.
+ */
 import Link from "next/link";
 import { ThemeToggle } from "./components/ThemeToggle";
 import Logo from "./components/Logo";
@@ -59,7 +66,7 @@ export default function LandingPage() {
             <Link href="/login" className="hidden sm:flex items-center justify-center text-sm font-bold text-[var(--muted)] hover:text-[var(--foreground)] transition-colors px-2">
               Log in
             </Link>
-            <Link href="/signup" className="button-primary text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_0_20px_rgba(53,198,179,0.3)]">
+            <Link href="/login" className="button-primary text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_0_20px_rgba(53,198,179,0.3)]">
               Get Started
             </Link>
           </div>
@@ -282,7 +289,7 @@ export default function LandingPage() {
                 AI travel planning for modern city breaks and destination journeys. Fully dynamic structure, safe profile management, and mobile-ready UI. Let AI map out your perfect trip while you focus on the packing.
               </p>
               <div className="mt-6 flex gap-4">
-                <Link href="/signup" className="text-sm font-bold text-[#ff855f] hover:text-[#ff9c7a] hover:underline underline-offset-4">Get Started Today →</Link>
+                <Link href="/login" className="text-sm font-bold text-[#ff855f] hover:text-[#ff9c7a] hover:underline underline-offset-4">Get Started Today →</Link>
               </div>
             </div>
 

@@ -1,5 +1,12 @@
+/**
+ * TripView Component
+ * 
+ * A detailed view for displaying a saved itinerary. It renders the full daily breakdown,
+ * flight results, route map links, and the financial cost-estimation block.
+ */
 import React from "react";
 import InteractiveDay from "../components/InteractiveDay";
+import FlightResults from "../components/FlightResults";
 import { TripRecord, ItineraryDay } from "./page";
 
 interface TripViewProps {
@@ -52,9 +59,9 @@ export default function TripView({ selectedTrip, onClose }: TripViewProps) {
             {local_event_or_festival && <div className="status-info mt-4">{local_event_or_festival}</div>}
             
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <p className="inline-flex rounded-full border border-[var(--line-strong)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--muted)] shadow-sm">
-                Best time to visit: <span className="ml-2 font-bold text-[var(--foreground)]">{best_time_to_visit}</span>
-              </p>
+              <div className="inline-block rounded-2xl border border-[var(--line-strong)] bg-[var(--background)] px-5 py-3 text-sm text-[var(--muted)] shadow-sm leading-relaxed">
+                Best time to visit: <span className="ml-1 font-bold text-[var(--foreground)]">{best_time_to_visit}</span>
+              </div>
               
               {travelStyle && (
                 <span className="inline-flex rounded-full border border-[var(--line-strong)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--foreground)] shadow-sm">
@@ -100,6 +107,28 @@ export default function TripView({ selectedTrip, onClose }: TripViewProps) {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
               </div>
+            </div>
+          )}
+
+          {/* Flights Section */}
+          {departure && destination && (
+            <div className="mt-6 mb-2">
+              <FlightResults 
+                departure={departure} 
+                destination={destination} 
+                date={
+                  selectedTrip.itinerary_data?.formData?.dateType === "exact" && selectedTrip.itinerary_data?.formData?.dateRange?.from
+                    ? new Date(selectedTrip.itinerary_data.formData.dateRange.from).toISOString().split('T')[0]
+                    : (selectedTrip.itinerary_data?.formData?.fixedDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+                }
+                returnDate={
+                  selectedTrip.itinerary_data?.formData?.dateType === "exact" && selectedTrip.itinerary_data?.formData?.dateRange?.to
+                    ? new Date(selectedTrip.itinerary_data.formData.dateRange.to).toISOString().split('T')[0]
+                    : (selectedTrip.itinerary_data?.formData?.dateType === "flexible" && selectedTrip.itinerary_data?.formData?.duration)
+                      ? new Date(new Date(selectedTrip.itinerary_data.formData.fixedDate || Date.now() + 30 * 24 * 60 * 60 * 1000).getTime() + selectedTrip.itinerary_data.formData.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                      : undefined
+                }
+              />
             </div>
           )}
 

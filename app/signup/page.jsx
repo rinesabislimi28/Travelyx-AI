@@ -1,3 +1,9 @@
+/**
+ * Signup Page
+ * 
+ * Handles new user registration via Supabase Auth. Validates passwords and redirects 
+ * successful registrations directly to the dashboard planner.
+ */
 "use client";
 
 import { useState } from "react";

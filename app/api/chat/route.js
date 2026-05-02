@@ -1,6 +1,5 @@
 import { generateTravelPlan } from "@/lib/ai/SystemPrompt";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * Handles the POST request for generating a travel plan via the AI system.
@@ -12,27 +11,26 @@ import { cookies } from "next/headers";
  */
 export async function POST(req) {
   try {
-    // Await the cookies utility to access incoming request headers securely
-    const cookieStore = await cookies();
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
 
-    // Initialize the Supabase server client for backend operations
-    const supabase = createServerClient(
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized. User not logged in." }),
+        { status: 401 }
+      );
+    }
+
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => { },
-          remove: () => { },
-        },
-      }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
 
     // AUTH CHECK - Ensure the user is authenticated before processing the request
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token);
 
     // Reject the request if the token is invalid or the session does not exist
     if (error || !user) {
