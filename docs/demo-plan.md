@@ -4,6 +4,7 @@
 **Presenter:** Rinesa Bislimi  
 **Live URL:** https://travelyx-ai.vercel.app  
 **Link GitHub:** https://github.com/rinesabislimi28/Travelyx-AI  
+
 ---
 
 ## 1. What is the project and who is it for? (1 min)
