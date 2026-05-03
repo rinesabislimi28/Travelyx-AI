@@ -303,7 +303,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Toast Notifications */}
-            <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+            <div className="fixed top-20 right-6 z-50 flex flex-col gap-3">
               {successMsg && (
                 <div className="animate-[bounce_0.5s_ease-out] rounded-xl bg-[#35c6b3] px-6 py-4 text-sm font-bold text-black shadow-2xl flex items-center gap-3">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>

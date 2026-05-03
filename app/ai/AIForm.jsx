@@ -156,12 +156,12 @@ function renderMapBlock({ departure, destination }) {
           </p>
         </div>
         <a
-          href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(departure)}&destination=${encodeURIComponent(destination)}`}
+          href={`http://maps.apple.com/?saddr=${encodeURIComponent(departure)}&daddr=${encodeURIComponent(destination)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 rounded-full bg-[#35c6b3] px-6 py-3 text-sm font-black text-black transition-all hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(53,198,179,0.4)] active:scale-95"
         >
-          View Route on Map
+          View Route on Apple Maps
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
         </a>
       </div>
@@ -297,12 +297,12 @@ export default function AIForm({ onTripGenerated = () => { } }) {
       dateMode: "flexible",
       flexibleDate: "Summer"
     }));
+    
+    // Attempt multiple scroll methods to ensure it works on all mobile devices
     const scrollContainer = document.getElementById("ai-form-scroll-container");
-    if (scrollContainer) {
-      scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.body.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e) => {
