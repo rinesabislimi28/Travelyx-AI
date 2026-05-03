@@ -1,42 +1,43 @@
 # Demo Plan: Travelyx-AI ✈️
 
 **Duration:** 5–7 minutes  
-**Presenter:** Rinesa Bislimi
-
+**Presenter:** Rinesa Bislimi  
+**Live URL:** https://travelyx-ai.vercel.app  
+**Link GitHub:** https://github.com/rinesabislimi28/Travelyx-AI  
 ---
 
 ## 1. What is the project and who is it for? (1 min)
-- **What it is:** Travelyx-AI is an advanced, AI-powered travel planning platform.
-- **Target Audience:** Modern travelers looking for rapid, personalized itineraries based on their specific budget, party size (e.g., Solo, Couple, Family), and travel style. It also serves small travel agencies looking to automate trip generation.
-- **Value Proposition:** It saves hours of manual research. Instead of browsing multiple blogs, the AI returns a structured day-by-day itinerary (Morning/Afternoon/Evening) and automatically calculates the total budget estimate for the entire group.
+- **What it is:** Travelyx-AI is an advanced, AI-powered travel planning platform integrated with real-time flight data.
+- **Target Audience:** Modern travelers looking for rapid, personalized itineraries based on specific budgets, party sizes, and dates. It also serves small travel agencies looking to automate trip generation with live ticket estimations.
+- **Value Proposition:** It saves hours of manual research by combining a structured day-by-day AI itinerary with live Skyscanner flight searches and an automated group budget calculator, all in one premium dashboard.
 
 ## 2. Main Flow to Demonstrate (Live Demo) (3 min)
-This is the core flow I will present during the live demo:
-1. **Authentication:** I will log into the system to demonstrate the secure authentication layer via Supabase.
+This is the core flow I will present:
+1. **Authentication:** I will log in to demonstrate the secure authentication layer via Supabase.
 2. **Trip Generation (Core Feature):** 
-   - I will open the AI form and input realistic data: Departure from Prishtina, Destination Paris, 3 days, Budget 1500 EUR.
-   - I will highlight the new dynamic inputs: "Romantic" travel style, "2 people (Couple)", and the "Summer" season.
-   - I will click "Generate" to demonstrate the live integration with the Groq API (Llama-3 model).
+   - I will input realistic data: Departure from Prishtina, Destination Paris (or Tokyo), 3 days, Budget 1500 EUR.
+   - I will click "Search" to trigger two simultaneous processes: the Groq API (Llama-3) for the itinerary, and the RapidAPI (Skyscanner) for live flight tickets.
 3. **Result Analysis:** 
-   - I will showcase the generated Route Map and the Financial Analysis block, explaining how it accurately calculates the total group costs and daily food expenses.
-   - I will scroll down to present the structured Morning, Afternoon, and Evening activities.
+   - I will showcase the **Flight Results** block first, showing real airline prices and durations.
+   - I will explain the Financial Analysis block, which combines the live flight cost with the AI's hotel/food estimations for the *entire* group.
+   - I will show the structured interactive days (Morning/Afternoon/Evening) and the direct link to Apple Maps routing.
 4. **Dashboard & Database Persistence:** 
-   - I will navigate to the "Dashboard" to prove that the newly generated trip was automatically saved to the Supabase database. I will open the saved trip to show that all metadata (badges for Season, Party Size, and Style) persists perfectly.
+   - I will navigate to the Dashboard to prove the trip is auto-saved in PostgreSQL (Supabase) in a JSONB format, and demonstrate the "Favorite" (Star) feature which syncs directly with the database.
 
 ## 3. Technical Aspects to Explain Briefly (1.5 min)
-I will briefly highlight these three engineering decisions to demonstrate technical depth:
-- **JSONB Architecture:** I will explain how the entire itinerary and dynamic variables (style, party size, season) are injected and stored in a single `JSONB` column in PostgreSQL (Supabase). This ensures high performance and schema flexibility.
-- **Intelligent Geographic Validation:** I implemented an AI-driven strict validation system. If a user enters a fake or gibberish location (e.g., "ahahah"), the AI intercepts it and returns a strict JSON error object, safely blocking the UI generation without crashing the app.
-- **Prompt Engineering for Budgeting:** To prevent LLM hallucination with math, I implemented a hidden System Prompt that strictly enforces the AI to calculate the total combined cost for all travelers (not per person), ensuring the final financial UI is perfectly accurate.
+I will highlight three key engineering decisions:
+- **Dual API Integration & Smart Fallback:** The app simultaneously queries the Groq LLM and the Skyscanner API. To prevent demo failures due to API rate limits, I engineered a context-aware fallback mechanism: if the flight API quota is exceeded, the system reads the user's destination and injects realistic mock data (e.g., Emirates/Qatar for Asia vs WizzAir/easyJet for Europe).
+- **JSONB Architecture:** The entire complex itinerary and flight metadata is structured and injected into a single `JSONB` column in PostgreSQL. This allows for high-speed retrieval in the Dashboard without complex relational joins.
+- **Strict Prompt Engineering:** To prevent LLM hallucination, I implemented a hidden System Prompt that forces the AI to output pure JSON and strictly calculates the total combined cost for *all* travelers (not per person).
 
 ## 4. Pre-Demo Checklist (0.5 min)
-- **Live URL:** Verified the Vercel production link is fully accessible and loads quickly.
+- **Live URL:** Verified the Vercel production link is fully accessible, uses HTTPS, and routing works perfectly on mobile/desktop.
 - **Test Account:** Created a dedicated test account (`rinesabislimi28@gmail.com`) to bypass registration time during the demo.
-- **Validation Testing:** Attempted to input fake destinations to ensure the AI validation successfully catches and blocks them.
-- **UI/UX:** Verified that Dark Mode, responsive layouts, and itinerary animations render perfectly without breaking.
+- **Validation Testing:** Verified the flight fallback triggers flawlessly without breaking the UI if API keys fail.
+- **UI/UX:** Confirmed Dark Mode, animations, and the newly added Apple Maps integration are functional.
 
 ## 5. Plan B (Fallback Strategy)
-In case of a university network failure or if the Groq API experiences downtime during the 5-minute presentation window:
-- **Fallback 1 (Saved Trips):** I will navigate directly to my Dashboard to showcase pre-generated trips. Since these are fetched directly from the Supabase database, they do not require a live connection to the AI engine.
-- **Fallback 2 (Local Media):** I have a folder on my laptop containing high-quality screenshots of the full generation process and loading states, ready to present offline.
-- **Code Walkthrough:** I will open VS Code to briefly walk through the Next.js `app/api/chat/route.js` architecture and the System Prompt logic. This demonstrates my engineering knowledge regardless of internet connectivity.
+In case of a university network failure or complete API downtime:
+- **Fallback 1 (Saved Trips):** I will navigate to my Dashboard to showcase pre-generated trips fetched directly from Supabase (which doesn't rely on the AI engine).
+- **Fallback 2 (Local Media):** I have a folder containing high-quality screenshots of the full generation process ready to present offline.
+- **Code Walkthrough:** I will open VS Code to explain the Next.js API routes (`app/api/chat` and `app/api/flights`) and my error-handling/fallback strategies.
