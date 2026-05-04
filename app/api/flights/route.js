@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30; // Max execution time 30s
+export const dynamic = 'force-dynamic'; // Prevent caching so we get live/fresh results
 
 async function searchAirport(query) {
   const url = `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchAirport?query=${encodeURIComponent(query)}`;
@@ -82,11 +83,19 @@ export async function GET(request) {
         ];
 
     // Fallback mock data when RapidAPI quota is exceeded or API fails.
+    // For the demo, we generate a booking URL that is 14 days from today to ensure valid results.
+    // We use Google Flights for mock data to bypass Skyscanner's strict bot protection (Captcha) on constructed links.
+    const demoDateObj = new Date();
+    demoDateObj.setDate(demoDateObj.getDate() + 14);
+    const demoDateStr = demoDateObj.toISOString().split('T')[0];
+    demoDateObj.setDate(demoDateObj.getDate() + 5);
+    const demoRetStr = returnDate ? demoDateObj.toISOString().split('T')[0] : '';
+
     const mockFlights = airlines.map((a, idx) => ({
       id: `mock-${idx + 1}`,
       price: `€${returnDate ? a.basePrice + 100 : a.basePrice}`,
       rawPrice: returnDate ? a.basePrice + 100 : a.basePrice,
-      bookingUrl: `https://${a.domain}`,
+      bookingUrl: `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(destination.split(',')[0])}%20from%20${encodeURIComponent(departure.split(',')[0])}%20on%20${demoDateStr}${returnDate ? '%20through%20' + demoRetStr : ''}`,
       isRoundTrip: !!returnDate,
       legs: [
         {
