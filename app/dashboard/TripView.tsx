@@ -37,6 +37,9 @@ export default function TripView({ selectedTrip, onClose }: TripViewProps) {
   const totalSpent = Number(budget_estimate?.total_trip_cost) || 0;
   const remaining = userBudgetNumber - totalSpent;
 
+  const defaultFlightDateStr = React.useMemo(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], []);
+  const defaultFlightTimeMs = React.useMemo(() => Date.now() + 30 * 24 * 60 * 60 * 1000, []);
+
   return (
     <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-5">
       <div className="shell">
@@ -119,13 +122,13 @@ export default function TripView({ selectedTrip, onClose }: TripViewProps) {
                 date={
                   selectedTrip.itinerary_data?.formData?.dateType === "exact" && selectedTrip.itinerary_data?.formData?.dateRange?.from
                     ? new Date(selectedTrip.itinerary_data.formData.dateRange.from).toISOString().split('T')[0]
-                    : (selectedTrip.itinerary_data?.formData?.fixedDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+                    : (selectedTrip.itinerary_data?.formData?.fixedDate || defaultFlightDateStr)
                 }
                 returnDate={
                   selectedTrip.itinerary_data?.formData?.dateType === "exact" && selectedTrip.itinerary_data?.formData?.dateRange?.to
                     ? new Date(selectedTrip.itinerary_data.formData.dateRange.to).toISOString().split('T')[0]
                     : (selectedTrip.itinerary_data?.formData?.dateType === "flexible" && selectedTrip.itinerary_data?.formData?.duration)
-                      ? new Date(new Date(selectedTrip.itinerary_data.formData.fixedDate || Date.now() + 30 * 24 * 60 * 60 * 1000).getTime() + selectedTrip.itinerary_data.formData.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                      ? new Date(new Date(selectedTrip.itinerary_data.formData.fixedDate || defaultFlightTimeMs).getTime() + selectedTrip.itinerary_data.formData.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                       : undefined
                 }
               />

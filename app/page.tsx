@@ -45,7 +45,7 @@ const footerLinks = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen flex flex-col">
       <div className="floating-orb one animate-float-slow" />
       <div className="floating-orb two animate-float-fast delay-300" />
 
@@ -73,7 +73,7 @@ export default function LandingPage() {
         </nav>
       </div>
 
-      <main className="shell pt-8 md:pt-12">
+      <main className="shell pt-8 md:pt-12 flex-1">
         <section className="hero-grid items-stretch">
           <div className="panel col-span-12 rounded-[2rem] p-6 sm:p-8 lg:col-span-7 lg:p-10 animate-fade-in-up flex flex-col">
             <div>
@@ -197,7 +197,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="panel rounded-[2rem] p-6">
+            <div id="how-it-works" className="panel scroll-mt-28 rounded-[2rem] p-6">
               <p className="text-sm uppercase tracking-[0.24em] text-[#ffd166]">How it works</p>
               <div className="mt-6 space-y-4">
                 {features.map((feature) => (
@@ -263,7 +263,7 @@ export default function LandingPage() {
               Better planning starts with a better feeling interface.
             </p>
             <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-base">
-              Travelyx takes the guesswork out of vacation planning. Whether it's a romantic weekend in Paris or a 14-day adventure through Japan, get a complete plan in seconds.
+              Travelyx takes the guesswork out of vacation planning. Whether it&apos;s a romantic weekend in Paris or a 14-day adventure through Japan, get a complete plan in seconds.
             </p>
             <Link href="/signup" className="button-primary mt-8">
               Build your next trip
@@ -298,7 +298,7 @@ export default function LandingPage() {
               <div className="mt-4 flex flex-col gap-3 text-sm font-medium text-[var(--muted)]">
                 <Link href="/login" className="hover:text-[var(--foreground)] transition-colors">Access your Dashboard</Link>
                 <Link href="/signup" className="hover:text-[var(--foreground)] transition-colors">Create a free account</Link>
-                <Link href="/#how-it-works" className="hover:text-[var(--foreground)] transition-colors">How the AI planner works</Link>
+                <Link href="#how-it-works" className="hover:text-[var(--foreground)] transition-colors">How the AI planner works</Link>
               </div>
             </div>
 

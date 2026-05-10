@@ -1,254 +1,41 @@
 # Travelyx-AI
 
-[![Project Status](https://img.shields.io/badge/status-in%20development-yellow)](#)  
+Travelyx-AI is an AI-powered travel planning app that generates detailed itineraries, estimates trip costs, and saves user trips with Supabase.
 
-## 🌐 Live Demo
-[Click here to view the live demo](https://travelyx-ai.vercel.app)
+## Live Demo
 
-**Description:** Travelyx-AI is an advanced Artificial Intelligence application that allows users to generate detailed travel itineraries, estimate budgets, and securely save and manage their trips using a cloud database. 
+[View the live demo](https://travelyx-ai.vercel.app)
 
-**Live Demo Overview:** When you open the live link above, you will be greeted by the platform's authentication system where you can securely log in. Once inside, you'll see a premium dashboard where you can input travel preferences (destination, duration, and budget). The core AI feature then generates a detailed, day-by-day itinerary. All of your generated trips are automatically saved to your personal account on the live database! This fully satisfies all requirements for Checkpoint 2.
+## Tech Stack
 
----
+- Next.js App Router
+- React
+- Supabase PostgreSQL and Auth
+- Groq API with Llama models
+- Vercel
 
-## Table of Contents
+## Local Setup
 
-- [Project Vision](#project-vision)  
-- [Tech Stack](#tech-stack)  
-- [User Roles](#user-roles)  
-- [Core MVP Features](#core-mvp-features)  
-- [How It Works](#-how-it-works)  
-- [AI Capabilities](#ai-capabilities)  
-- [Database Structure](#simplified-database-structure-supabase)  
-- [Security & Architecture](#security--architecture)  
-- [Development Timeline](#development-timeline-12-weeks)  
-- [Monetization Potential](#monetization-potential)  
-- [Author](#author)  
+```bash
+npm install
+npm run dev
+```
 
----
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🚀 Project Vision
+## Environment Variables
 
-Travelyx-AI is an AI-powered travel planning platform for modern travelers and small travel agencies.  
+Create `.env.local` in the project root:
 
-Goals:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+GROQ_API_KEY=your_groq_api_key
+RESEND_API_KEY=your_resend_api_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-- Automate travel itinerary generation using AI  
-- Provide personalized destination recommendations  
-- Help small agencies create travel plans faster  
-- Offer travelers an interactive AI assistant  
-- Deliver a practical MVP ready for real-world use  
+## Documentation
 
-Focus: Simplicity, functionality, and real implementation.
-
----
-
-## 🛠 Tech Stack
-
-- **Frontend:** Next.js (App Router)  
-- **Backend & Database:** Supabase (PostgreSQL)  
-- **Authentication:** Supabase Auth (Email login)  
-- **AI Integration:** Groq API using Llama 3 models via groq-sdk
-- **Hosting:** Vercel  
-- **PDF Export:** Server-side PDF generation  
-
----
-
-## 💻 Local Setup & Installation
-
-To run this project locally, follow these steps:
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd travelyx-ai
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Variables (.env.local):**
-   Create a `.env.local` file in the root of your project and include the following variables required to run the AI engine and the Database.
-   
-   ```env
-   # Supabase Configuration
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-   # AI Configuration (Groq)
-   GROQ_API_KEY=your_groq_api_key
-
-   # Email Configuration (Resend)
-   RESEND_API_KEY=your_resend_api_key
-
-   # Site Configuration
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
-   ```
-
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) to view your local version.
-
----
-
-## 👤 User Roles
-
-### Travelers
-
-- Register and log in  
-- Set travel preferences (budget, duration, travel style)  
-- Generate AI destination suggestions  
-- Generate personalized day-by-day itineraries  
-- Edit itineraries manually  
-- Estimate total trip cost (simulated)  
-- Chat with AI assistant  
-- Save trips to profile  
-- Export itinerary as PDF  
-
-### Agencies (Simple Mode)
-
-- Register as agency account  
-- Create itineraries for clients  
-- Save and manage client trips  
-- Use AI to generate structured travel plans  
-- View created trips in dashboard  
-
----
-
-## ✨ Core MVP Features
-
-### 🔹 AI Destination Recommendation
-
-- Suggests destinations based on budget, duration, travel style, party size (Solo/Couple/Family), and season/date.
-- Features strict AI-based geographic validation (blocks fake/gibberish location inputs).
-- Provides short description, key attractions, suggested activities, and best visiting times.
-
-### 🔹 Smart Itinerary Generator
-
-- Structured day-by-day itineraries (3–7 days).
-- Morning, afternoon, evening activities dynamically tailored to group size and season.
-- Generated by Llama 3 models via Groq API in JSON format.
-- Stored in database, editable, regenerable, exportable as PDF  
-
-### 🔹 Live Flight Integration & Cost Estimator
-
-- **Live Flight Data:** Integration with Skyscanner API (via RapidAPI) to display real-world ticket pricing, departure/arrival times, and direct booking links.
-- **Dynamic Cost Breakdown:** AI-estimated hotel and daily activity costs based on the specific destination and travel style.
-- **Budget Management:** Automatic total trip cost calculation vs. user budget.
-
-### 🔹 AI Travel Chat Assistant
-
-- Ask contextual questions (e.g., rainy day activities, restaurant suggestions)  
-- Regenerate itinerary sections as needed  
-- Context-aware using trip data  
-
-### 🔹 Trip Management System
-
-- Create multiple trips  
-- Save draft itineraries  
-- Edit or delete trips  
-- View trip history  
-
----
-
-## ⚙ How It Works
-
-1. User enters travel preferences (budget, duration, style)  
-2. System sends structured prompts to the Groq API using Llama models
-3. The AI model returns a structured itinerary in JSON format
-4. Itinerary is stored in Supabase  
-5. User can edit, save, regenerate, or export as PDF  
-6. AI assistant provides contextual recommendations  
-
----
-
-## 🧠 AI Capabilities
-
-- Generate structured itineraries  
-- Suggest destinations  
-- Answer travel-related questions  
-- Adapt recommendations to user preferences  
-
-Prompt engineering ensures consistent structured responses for DB storage.
-
----
-
-## 🗂 Simplified Database Structure (Supabase)
-
-- **Tables:** users, trips (Modern JSONB architecture)
-- Architecture:  
-  - One user → many trips  
-  - One trip → contains the full AI-generated itinerary dynamically stored via PostgreSQL JSONB  
-  - Database now includes an `is_favorite` tracking flag for seamless multi-device syncing of saved trips.
-- Row Level Security (RLS) ensures strict privacy and data access control
-
----
-
-## 🔐 Security & Architecture
-
-- Secure authentication via Supabase  
-- Server-side AI API calls  
-- Protected API routes  
-- Environment variable protection  
-- Clean and scalable folder structure  
-
----
-
-## 📅 Development Timeline (12 Weeks)
-
-### Week 1–2
-- Finalize requirements  
-- Design DB schema  
-- Setup Next.js & Supabase  
-
-### Week 3–4
-- Authentication system  
-- Role-based access  
-- Basic dashboard structure  
-
-### Week 5–6
-- AI destination recommendation  
-- AI itinerary generation  
-- JSON structured output  
-
-### Week 7–8
-- Trip saving system  
-- Budget estimator  
-- Edit itinerary functionality  
-
-### Week 9
-- AI Chat assistant (simplified)  
-
-### Week 10
-- PDF export  
-- UI improvements  
-
-### Week 11
-- Testing & bug fixing  
-- Performance optimization  
-
-### Week 12
-- Deployment on Vercel  
-- Final documentation & presentation  
-
----
-
-## 💰 Monetization Potential
-
-- Subscription model for agencies  
-- Premium AI itinerary generation  
-- White-label solution for small travel agencies  
-- Architecture supports future SaaS expansion  
-
----
-
-## 🧑‍💻 Author
-
-Developed as part of the "Advanced Programming" course using modern AI-driven full-stack development.  
-
-Travelyx-AI — Smart Travel Planning Powered by Artificial Intelligence ✈️
+Full project documentation is in [docs/project-overview.md](docs/project-overview.md).

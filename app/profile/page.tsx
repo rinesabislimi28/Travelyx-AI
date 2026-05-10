@@ -16,10 +16,12 @@ import Logo from "../components/Logo";
 import { clearLocalAuth } from "../../lib/clearLocalAuth";
 
 type AuthUser = {
+  id?: string;
   email?: string;
   created_at?: string;
   user_metadata?: {
     full_name?: string;
+    avatar_url?: string;
   };
 };
 
@@ -35,6 +37,7 @@ export default function ProfilePage() {
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -83,12 +86,10 @@ export default function ProfilePage() {
         } catch (e) {
           console.warn("Unable to parse favorites:", e);
         }
-      }
-    
-      const savedAvatar = localStorage.getItem("travelyx_avatar");
-      if (savedAvatar) {
-        setAvatarUrl(savedAvatar);
-        setPreviewAvatarUrl(savedAvatar);
+        if (user.user_metadata?.avatar_url) {
+          setAvatarUrl(user.user_metadata.avatar_url);
+          setPreviewAvatarUrl(user.user_metadata.avatar_url);
+        }
       }
     } catch (error) {
       console.warn("Supabase profile request failed:", error);
@@ -106,6 +107,7 @@ export default function ProfilePage() {
       return;
     }
     
+    setAvatarFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -134,16 +136,38 @@ export default function ProfilePage() {
     setIsUpdatingName(true);
     let updated = false;
 
-    const updateData: { full_name?: string } = {};
+    const updateData: { full_name?: string; avatar_url?: string } = {};
 
     if (fullName.trim() && fullName !== user?.user_metadata?.full_name) {
       updateData.full_name = fullName.trim();
     }
 
-    if (previewAvatarUrl !== avatarUrl) {
-      localStorage.setItem("travelyx_avatar", previewAvatarUrl || "");
-      setAvatarUrl(previewAvatarUrl);
-      updated = true;
+    if (avatarFile) {
+      try {
+        const fileExt = avatarFile.name.split(".").pop();
+        const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(filePath);
+
+        updateData.avatar_url = publicUrl;
+        setAvatarUrl(publicUrl);
+        setPreviewAvatarUrl(publicUrl);
+        setAvatarFile(null);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        showFeedback("error", "Failed to upload avatar: " + errorMessage);
+        setIsUpdatingName(false);
+        return;
+      }
     }
 
     if (Object.keys(updateData).length > 0) {
@@ -350,7 +374,7 @@ export default function ProfilePage() {
                     {previewAvatarUrl && previewAvatarUrl !== avatarUrl && (
                       <div className="rounded-xl border border-[#ffd166]/30 bg-[#ffd166]/10 p-3 mb-2 flex gap-3 items-center">
                         <svg className="w-5 h-5 text-[#ffd166] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <p className="text-sm font-bold text-[#ffd166]">You have an unsaved profile picture. Click "Save details" to apply it.</p>
+                        <p className="text-sm font-bold text-[#ffd166]">You have an unsaved profile picture. Click &quot;Save details&quot; to apply it.</p>
                       </div>
                     )}
                     <div>
